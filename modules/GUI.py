@@ -13,7 +13,7 @@ class MainGui(QMainWindow):
         initialised'''
         super(MainGui, self).__init__()
         uic.loadUi(r"./ui/pacs_home.ui" ,self)# loads the UI from .ui file
-        self.show()
+        self.showMaximized()
 
 
 def ShowGui():
