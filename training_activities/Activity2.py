@@ -3,5 +3,3 @@ you to write a function called CalculateAgeFromDob
 that calulates the patient's age given the date of birth
 given to the function as a string.'''
 
-def CalculateAgeFromDob(dob):
-    return 10

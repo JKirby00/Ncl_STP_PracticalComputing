@@ -8,12 +8,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem
 import sys
 import pathlib
 from os.path import join
-sys.path.extend([
-    join(pathlib.Path(__file__).parent.parent.absolute(), "modules"),
-    join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities")
-])
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
 import DatabaseHandler
-import Activity2
+import Activity1, Activity2
 
 class MainGui(QMainWindow):
     '''This is the class that defines the main PACS graphical window.'''
@@ -23,9 +20,16 @@ class MainGui(QMainWindow):
         super(MainGui, self).__init__()
         uic.loadUi(r"./ui/pacs_home.ui" ,self)# loads the UI from .ui file
         self.showMaximized()
+        self.pt_data = None
 
+        # create an instance of the database handler class
         self.DbClass = DatabaseHandler.PacsDatabaseClass()
+
+        # update the patient table
         self.UpdatePatientTable()
+
+        # connect up the actions on the GUI
+        self.patientTable.cellClicked.connect(self.PatientRowClicked)
 
     def UpdatePatientTable(self):
         '''Function to update the patient table data by querying
@@ -35,16 +39,16 @@ class MainGui(QMainWindow):
         Returns Nothing
         '''
         # first get the patient data
-        pt_data = self.DbClass.GetPatientDetails()
+        self.pt_data = self.DbClass.GetPatientDetails()
         
         # then remove existing rows in table
         self.patientTable.setRowCount(0)
 
         # loop through each patient and add to the table
-        for row_id in range(len(pt_data)):
+        for row_id in range(len(self.pt_data)):
             self.patientTable.insertRow(row_id)# create a row to add cells to
             col_id = -1
-            for col_name in pt_data[row_id]:
+            for col_name in self.pt_data[row_id]:
                 if col_name == "id":
                     # ignore the id column
                     continue
@@ -56,21 +60,29 @@ class MainGui(QMainWindow):
                     col_id += 1
 
                 # create the table cell widget and then add to the table
-                cell_item = QTableWidgetItem(pt_data[row_id][col_name])
+                cell_item = QTableWidgetItem(self.pt_data[row_id][col_name])
                 self.patientTable.setItem(row_id, col_id, cell_item)
 
             # add in the calculated age of the patient (will work once activity 2
             # has been successfully completed)
             try:
                 # call age calculating function and then set to table cell
-                age = Activity2.CalculateAgeFromDob(dob = pt_data["DateOfBirth"])
+                age = Activity2.CalculateAgeFromDob(dob = self.pt_data[row_id]["DateOfBirth"])
                 cell_item = QTableWidgetItem(str(age))
                 self.patientTable.setItem(row_id, 3, cell_item)
             except:
                 # just add ?? for now as not able to set age
                 cell_item = QTableWidgetItem("??")
                 self.patientTable.setItem(row_id, 3, cell_item)
-
+            
+    def PatientRowClicked(self, row, col):
+        '''User has clicked on a patient in the patient table so then
+        update the study data and link to activity 1 to print the patient
+        details to the console.'''
+        try:
+            Activity1.PrintDataToConsole(patient_details = self.pt_data[row])
+        except:
+            print("Activity 1 not yet completed")
         
 
 
