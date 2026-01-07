@@ -112,6 +112,37 @@ class PacsDatabaseClass:
             study_dicts.append(row_dict)
         
         return study_dicts
+    
+    def GetSeriesDetails(self, study_id):
+        '''Function to retrieve the list of study data
+        given a patient database id.
+        
+        Args: None
+        Returns:
+            List of dicts where the keys are the column names and each
+            dictionary is for a different study record
+        '''
+        self.CreateDatabaseConnection()
+
+        # complate the query to get all patients
+        cursor = self.Conn.cursor()
+        cursor.execute("SELECT * FROM Series WHERE StudyId = ?", (study_id,))
+        series = cursor.fetchall()
+
+        self.CloseDatabaseConnection()
+
+        # get the column names
+        col_names = [desc[0] for desc in cursor.description]
+        
+        # convert the result to a list of dictionaries
+        series_dicts = []
+        for row in series:
+            row_dict = {}
+            for i in range(len(col_names)):
+                row_dict[col_names[i]] = row[i]
+            series_dicts.append(row_dict)
+        
+        return series_dicts
 
     def GetDatabaseIdFromMRN(self, MRN):
         '''Get the primary key for a patient with a given MRN.

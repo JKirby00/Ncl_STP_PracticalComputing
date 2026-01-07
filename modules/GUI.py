@@ -26,6 +26,7 @@ class MainGui(QMainWindow):
         self.showMaximized()
         self.pt_data = None
         self.study_list = None
+        self.series_list = None
         self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
         # create an instance of the database handler class
@@ -37,6 +38,11 @@ class MainGui(QMainWindow):
         # connect up the actions on the GUI
         self.patientTable.cellClicked.connect(self.PatientRowClicked)
         self.importPatientBtn.clicked.connect(self.ImportBtnClicked)
+        self.studiesTable.cellClicked.connect(self.StudyRowClicked)
+
+        self.seriesTable.setRowCount(0)
+        self.studiesTable.setRowCount(0)
+        self.seriesTable.setColumnWidth(0,150)
 
     def UpdatePatientTable(self):
         '''Function to update the patient table data by querying
@@ -119,7 +125,26 @@ class MainGui(QMainWindow):
                 # add to the table
                 self.studiesTable.setItem(row_id, col_id, cell_item)
 
-    
+    def UpdateSeriesTable(self, series_list):
+        '''A list of series has been sent back from the thread so
+        update the series table.'''
+        self.series_list = series_list
+
+        # loop through each study and add to the table
+        for row_id in range(len(series_list)):
+            self.seriesTable.insertRow(row_id)# create a row to add cells to
+            col_id = -1
+            for col_name in series_list[row_id]:
+                if col_name == "id" or col_name == "StudyId":
+                    # ignore the id columns
+                    continue
+                else:
+                    col_id += 1
+
+                # add to the table
+                cell_item = QTableWidgetItem(str(series_list[row_id][col_name]))
+                self.seriesTable.setItem(row_id, col_id, cell_item)
+
     def PatientRowClicked(self, row, col):
         '''User has clicked on a patient in the patient table so then
         update the study data and link to activity 1 to print the patient
@@ -136,7 +161,15 @@ class MainGui(QMainWindow):
         self.studythread = GetStudyInfoThread(self.pt_data[row]['id'])
         self.studythread.study_details_sig.connect(self.UpdateStudyTable)
         self.studythread.start()
-   
+
+    def StudyRowClicked(self, row, col):
+        '''The user has clicked on a row of the study table
+        so update the series table with data'''
+        self.seriesTable.setRowCount(0)
+        self.seriesthread = GetSeriesInfoThread(self.study_list[row]['id'])
+        self.seriesthread.series_details_sig.connect(self.UpdateSeriesTable)
+        self.seriesthread.start()
+
     def ImportBtnClicked(self):
         '''The user has clicked the import button so now get data
         on the patients in import directory.'''
@@ -255,6 +288,24 @@ class GetStudyInfoThread(QThread):
         db_handler = DatabaseHandler.PacsDatabaseClass()
         study_list = db_handler.GetStudyDetails(pt_id = self.pt_dbid)
         self.study_details_sig.emit(study_list)
+
+class GetSeriesInfoThread(QThread):
+    '''Class the define the thread that fiunds the series
+    data associated with the clicked study.
+    
+    Args:
+        study_dbid (int) = The database id of the study
+    '''
+    series_details_sig = pyqtSignal(list)
+    def __init__(self, study_dbid):
+        QThread.__init__(self)
+        self.study_dbid = study_dbid
+
+    def run(self):
+        '''Code that is run when the thread is started'''
+        db_handler = DatabaseHandler.PacsDatabaseClass()
+        series_list = db_handler.GetSeriesDetails(study_id = self.study_dbid)
+        self.series_details_sig.emit(series_list)
 
 def ShowGui():
     '''
