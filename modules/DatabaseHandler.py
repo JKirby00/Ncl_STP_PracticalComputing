@@ -124,7 +124,6 @@ class PacsDatabaseClass:
         '''
         self.CreateDatabaseConnection()
 
-        # complate the query to get all patients
         cursor = self.Conn.cursor()
         cursor.execute("SELECT * FROM Series WHERE StudyId = ?", (study_id,))
         series = cursor.fetchall()
@@ -143,6 +142,31 @@ class PacsDatabaseClass:
             series_dicts.append(row_dict)
         
         return series_dicts
+    
+    def GetImageData(self, series_id):
+        '''Obtain the image data for the given series id'''
+        self.CreateDatabaseConnection()
+        cursor = self.Conn.cursor()
+        cursor.execute("SELECT * FROM Images WHERE SeriesDbId = ?", (series_id,))
+        images = cursor.fetchall()
+        self.CloseDatabaseConnection()
+
+        # get a list of all of the instance numbers
+        instance_ids = [im[1] for im in images]
+        instance_ids.sort()# sort them into ascending order
+
+        image_data = {
+            "instance_ids":instance_ids,
+            "images":{}}
+        
+        for image in images:
+            image_data["images"][str(image[1])] = np.frombuffer(
+                    image[2], dtype=np.int16).reshape(
+                        image[4], image[5])
+            
+
+        return image_data
+
 
     def GetDatabaseIdFromMRN(self, MRN):
         '''Get the primary key for a patient with a given MRN.

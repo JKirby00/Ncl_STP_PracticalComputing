@@ -7,6 +7,10 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem
 from PyQt5.QtWidgets import QDialog, QListWidgetItem
 from PyQt5.QtCore import QThread, pyqtSignal
+from matplotlib.backends.backend_qt5agg import FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+from pandas.plotting import register_matplotlib_converters
 import sys
 import pathlib
 from os.path import join
@@ -27,6 +31,7 @@ class MainGui(QMainWindow):
         self.pt_data = None
         self.study_list = None
         self.series_list = None
+        self.image_data = None
         self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
         # create an instance of the database handler class
@@ -39,10 +44,34 @@ class MainGui(QMainWindow):
         self.patientTable.cellClicked.connect(self.PatientRowClicked)
         self.importPatientBtn.clicked.connect(self.ImportBtnClicked)
         self.studiesTable.cellClicked.connect(self.StudyRowClicked)
+        self.seriesTable.cellClicked.connect(self.SeriesRowClicked)
 
         self.seriesTable.setRowCount(0)
         self.studiesTable.setRowCount(0)
         self.seriesTable.setColumnWidth(0,150)
+
+        # setup img viewer canvas
+        self.img_viewer_canvas = FigureCanvas(Figure())
+        self.viewerLayout.addWidget(self.img_viewer_canvas)
+        self.img_viewer_canvas.mpl_connect('scroll_event',self.ScrollImage)
+
+    def ScrollImage(self, e):
+        '''User has scroll on the image viewer so update slice shown'''
+        if self.image_data is None:
+            return
+        max_instance_num = max(self.image_data["instance_ids"])
+        min_instance_num = max(self.image_data["instance_ids"])
+
+        if e.button == 'up':
+            if self.current_instance_num == max_instance_num:
+                return
+            self.current_instance_num += 1
+        else:
+            if self.current_instance_num == min_instance_num:
+                return
+            self.current_instance_num -= 1
+
+        self.PlotImage(self.current_instance_num)
 
     def UpdatePatientTable(self):
         '''Function to update the patient table data by querying
@@ -169,6 +198,28 @@ class MainGui(QMainWindow):
         self.seriesthread = GetSeriesInfoThread(self.study_list[row]['id'])
         self.seriesthread.series_details_sig.connect(self.UpdateSeriesTable)
         self.seriesthread.start()
+
+    def SeriesRowClicked(self, row, col):
+        '''The user has clicked on a row of the series table
+        so get the image data and plot it.'''
+        self.imagesthread = GetImageDataThread(self.series_list[row]['id'])
+        self.imagesthread.image_data_sig.connect(self.SetImageData)
+        self.imagesthread.start()
+
+    def SetImageData(self, image_data):
+        '''Image data has been sent back from the thread. Read
+        this data and show it on the GUI'''
+        self.image_data = image_data
+        self.current_instance_num = int(0.5*(max(image_data['instance_ids']) - min(image_data['instance_ids'])))
+        self.PlotImage(self.current_instance_num)
+
+    def PlotImage(self, instance_number):
+        '''Plot the image on the GUI for the specified instance
+        number'''
+        self.img_viewer_canvas.figure.clf()
+        self._subplot = self.img_viewer_canvas.figure.subplots()
+        self._subplot.imshow(self.image_data["images"][str(instance_number)], cmap='gray')
+        self.img_viewer_canvas.draw_idle()
 
     def ImportBtnClicked(self):
         '''The user has clicked the import button so now get data
@@ -306,6 +357,24 @@ class GetSeriesInfoThread(QThread):
         db_handler = DatabaseHandler.PacsDatabaseClass()
         series_list = db_handler.GetSeriesDetails(study_id = self.study_dbid)
         self.series_details_sig.emit(series_list)
+
+class GetImageDataThread(QThread):
+    '''Class the define the thread that finds the image
+    data associated with the clicked series.
+    
+    Args:
+        series_dbid (int) = The database id of the series
+    '''
+    image_data_sig = pyqtSignal(dict)
+    def __init__(self, series_dbid):
+        QThread.__init__(self)
+        self.series_dbid = series_dbid
+
+    def run(self):
+        '''Code that is run when the thread is started'''
+        db_handler = DatabaseHandler.PacsDatabaseClass()
+        image_data = db_handler.GetImageData(series_id = self.series_dbid)
+        self.image_data_sig.emit(image_data)
 
 def ShowGui():
     '''
