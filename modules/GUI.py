@@ -5,11 +5,14 @@ in the MiniPACS.
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem
+from PyQt5.QtWidgets import QDialog, QListWidgetItem
+from PyQt5.QtCore import QThread, pyqtSignal
 import sys
 import pathlib
 from os.path import join
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
 import DatabaseHandler
+import ImportDicom
 import Activity1, Activity2
 
 class MainGui(QMainWindow):
@@ -21,6 +24,7 @@ class MainGui(QMainWindow):
         uic.loadUi(r"./ui/pacs_home.ui" ,self)# loads the UI from .ui file
         self.showMaximized()
         self.pt_data = None
+        self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
         # create an instance of the database handler class
         self.DbClass = DatabaseHandler.PacsDatabaseClass()
@@ -30,6 +34,7 @@ class MainGui(QMainWindow):
 
         # connect up the actions on the GUI
         self.patientTable.cellClicked.connect(self.PatientRowClicked)
+        self.importPatientBtn.clicked.connect(self.ImportBtnClicked)
 
     def UpdatePatientTable(self):
         '''Function to update the patient table data by querying
@@ -84,7 +89,107 @@ class MainGui(QMainWindow):
         except:
             print("Activity 1 not yet completed")
         
+    def ImportBtnClicked(self):
+        '''The user has clicked the import button so now get data
+        on the patients in import directory.'''
+        self.importPatientBtn.setText("Searching Import..")
+        self.getptsthread = FindPatientsInImportThread(self.import_dir)
+        self.getptsthread.pt_details_sig.connect(self.ImportPtsReturned)
+        self.getptsthread.start()
 
+    def ImportPtsReturned(self, pt_list):
+        '''The list of patients has been returned so add this to the dialog
+        so that the user can select which patient.'''
+        self.importPatientBtn.setText("Import New Patient")
+        dialog = PatientListDialog(pt_list, self.import_dir)
+        dialog.exec_()
+        dialog.show()
+
+class PatientListDialog(QDialog):
+    '''This is the class that defines the dialog that shows the
+    user the list of patients in the import directory.'''
+    def __init__(self, pt_list, import_dir):
+        '''This function is called when the dialog class is first
+        initialised'''
+        super(PatientListDialog, self).__init__()
+        uic.loadUi(r"./ui/pt_list_dialog.ui" ,self)
+        self.import_dir = import_dir
+
+        #clear and then populate the patient list
+        self.ptListWidget.clear()
+        for pt in pt_list:
+            listItem = QListWidgetItem()
+            listItem.setText(f"{pt['Name']} ({pt['MRN']})")
+            self.ptListWidget.addItem(listItem)
+
+        self.buttonBox.accepted.connect(self.ImportPatient)
+
+        self.show()
+
+    def ImportPatient(self):
+        '''The user has selected a patient from the import directory so now
+        we will call the thread that actually imports the data into the database'''
+        selected_pt = self.ptListWidget.currentItem()
+        if selected_pt is None:
+            return
+        
+        progress = ProgressDialog()
+
+        self.import_thread = ImportDicom.ImportPatientDataThread(
+            self.import_dir, selected_pt.text().split("(")[-1].split(")")[0])
+        self.import_thread.progress_sig.connect(progress.UpdateValue)
+        self.import_thread.label_sig.connect(progress.UpdateLabel)
+        self.import_thread.start()
+
+        progress.exec_()
+        progress.show()
+
+class ProgressDialog(QDialog):
+    '''This class is a generic progress bar dialog'''
+    def __init__(self):
+        super(ProgressDialog, self).__init__()
+        uic.loadUi(r"./ui/progress_bar.ui" ,self)
+        self.show()
+
+    def UpdateValue(self, val):
+        '''Update the value on the progress bar
+        
+        Args:
+            val (int) = The new progress value
+        returns nothing
+        '''
+        self.progressBarDialog.setValue(val)
+
+    def UpdateLabel(self, new_string):
+        '''Update the string shown on the label
+        on the progress dialog.
+        
+        Args:
+            new_string (str) = The string to show on the label
+        Returns nothing    
+        '''
+        self.progressLabel.setText(new_string)
+
+class FindPatientsInImportThread(QThread):
+    '''Class to define the thread that identifies the patient
+    data in the import directory. This is done as a thread to
+    avoid locking the GUI.
+    
+    Args:
+        import_dir (str) = The path of the import directory
+    '''
+    pt_details_sig = pyqtSignal(list)
+    def __init__(self, import_dir):
+        QThread.__init__(self)
+        self.import_dir = import_dir
+
+    def run(self):
+        '''Code that is run when the thread is started'''
+        print("starting thread")
+        pt_in_import = ImportDicom.GetPatientsInImport(
+            import_dir = self.import_dir
+        )
+        self.pt_details_sig.emit(pt_in_import)
 
 def ShowGui():
     '''

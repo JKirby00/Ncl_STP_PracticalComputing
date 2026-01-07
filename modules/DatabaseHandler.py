@@ -5,6 +5,7 @@ data to show in our test pacs system.'''
 import sqlite3
 import pathlib
 from os.path import join
+import numpy as np
 
 class PacsDatabaseClass:
     '''
@@ -80,6 +81,97 @@ class PacsDatabaseClass:
             pt_dicts.append(row_dict)
         
         return pt_dicts
+
+    def GetDatabaseIdFromMRN(self, MRN):
+        '''Get the primary key for a patient with a given MRN.
+        Arguably this is unecessary if the MRN is unique.'''
+        self.CreateDatabaseConnection()
+
+        cursor = self.Conn.cursor()
+        cursor.execute("SELECT id FROM Patients WHERE MRN = ?", (MRN,))
+        mrn = cursor.fetchone()[0]
+        self.CloseDatabaseConnection()
+
+        return mrn
+
+    def InsertNewPatientData(self, data):
+        '''Take the dictionary of scraped data and insert this into
+        the database'''
+        for study_uid in data:
+            # get the database id for the MRN
+            id = self.GetDatabaseIdFromMRN(MRN = data[study_uid]["MRN"])
+
+            # add the study
+            self.CreateDatabaseConnection()
+            cursor = self.Conn.cursor()
+
+            sql_string = """INSERT INTO Studies (PatientDatabaseId,
+                DateOfStudy, StudyType) VALUES (?,?,?)
+            """
+            variables = (id, data[study_uid]["StudyDate"], data[study_uid]["Type"])
+
+            cursor.execute(sql_string, variables)
+            self.Conn.commit()
+            lastrowid = cursor.lastrowid
+            self.CloseDatabaseConnection()
+
+            # get the database id for the study based on the lastrowid
+            self.CreateDatabaseConnection()
+            cursor = self.Conn.cursor()
+            cursor.execute("SELECT id FROM Studies WHERE ROWID = ?", (lastrowid,))
+            study_db_id = cursor.fetchone()[0]
+            self.CloseDatabaseConnection()
+
+            # now add each series
+            for series_uid in data[study_uid]["Series"]:
+                self.CreateDatabaseConnection()
+                cursor = self.Conn.cursor()
+            
+                sql_string = """INSERT INTO Series (StudyId,
+                    Description, NumberOfSlices) VALUES (?,?,?)
+                """
+                variables = (study_db_id,
+                    data[study_uid]["Series"][series_uid]["Description"],
+                    len(data[study_uid]["Series"][series_uid]["ImageData"]))
+
+                cursor.execute(sql_string, variables)
+                self.Conn.commit()
+                series_lastrowid = cursor.lastrowid
+                self.CloseDatabaseConnection()
+
+                # get the database id for the series based on the lastrowid
+                self.CreateDatabaseConnection()
+                cursor = self.Conn.cursor()
+                cursor.execute("SELECT id FROM Series WHERE ROWID = ?", (series_lastrowid,))
+                series_db_id = cursor.fetchone()[0]
+                self.CloseDatabaseConnection()
+
+                # loop through all the images and store this data
+                for instance_number in data[study_uid]["Series"][series_uid]["ImageData"]:
+                    # flatten the pixel array and convert to bytes
+                    img_arr = data[study_uid]["Series"][series_uid]["ImageData"][instance_number]
+                    img_arr = np.ascontiguousarray(img_arr)
+                    shape = img_arr.shape
+                    img_bytes = img_arr.ravel().tobytes()
+
+                    self.CreateDatabaseConnection()
+                    cursor = self.Conn.cursor()
+                
+                    sql_string = """INSERT INTO Images (InstanceNumber,
+                        PixelData, SeriesDbId, Shape1, Shape2) VALUES (?,?,?,?,?)
+                    """
+                    variables = (instance_number,
+                        sqlite3.Binary(img_bytes),
+                        series_db_id,
+                        int(shape[0]),
+                        int(shape[1]))
+
+                    cursor.execute(sql_string, variables)
+                    self.Conn.commit()
+                    self.CloseDatabaseConnection()
+
+
+
 
 if __name__ == "__main__":
     test = PacsDatabaseClass()
