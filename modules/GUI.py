@@ -10,6 +10,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import sys
 import pathlib
 from os.path import join
+from datetime import datetime
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
 import DatabaseHandler
 import ImportDicom
@@ -24,6 +25,7 @@ class MainGui(QMainWindow):
         uic.loadUi(r"./ui/pacs_home.ui" ,self)# loads the UI from .ui file
         self.showMaximized()
         self.pt_data = None
+        self.study_list = None
         self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
         # create an instance of the database handler class
@@ -79,7 +81,45 @@ class MainGui(QMainWindow):
                 # just add ?? for now as not able to set age
                 cell_item = QTableWidgetItem("??")
                 self.patientTable.setItem(row_id, 3, cell_item)
-            
+
+    def UpdateStudyTable(self, study_list):
+        '''A list of studies has been sent back from the thread so
+        update the study table.'''
+        self.study_list = study_list
+
+        # loop through each study and add to the table
+        for row_id in range(len(study_list)):
+            self.studiesTable.insertRow(row_id)# create a row to add cells to
+            col_id = -1
+            for col_name in study_list[row_id]:
+                if col_name == "id" or col_name == "PatientDatabaseId":
+                    # ignore the id columns
+                    continue
+                elif col_name == "DateOfStudy":
+                    # convert date into format required
+                    time_string = datetime.strptime(study_list[row_id][col_name],
+                        "%Y%m%d").strftime("%d/%m/%Y")
+                    cell_item = QTableWidgetItem(time_string)
+                    col_id += 1
+                elif col_name == "StudyType":
+                    # convert study type from id to text
+                    conversion_dict = {
+                        "1.2.840.10008.5.1.4.1.1.2":"CT",
+                        "1.2.840.10008.5.1.4.1.1.2.1":"Enhanced CT",
+                        "1.2.840.10008.5.1.4.1.1.4":"MRI"
+                    }
+
+                    if str(study_list[row_id][col_name]) in conversion_dict:
+                        type_string = conversion_dict[str(study_list[row_id][col_name])]
+                    else:
+                        type_string = study_list[row_id][col_name]
+                    cell_item = QTableWidgetItem(type_string)
+                    col_id += 1
+
+                # add to the table
+                self.studiesTable.setItem(row_id, col_id, cell_item)
+
+    
     def PatientRowClicked(self, row, col):
         '''User has clicked on a patient in the patient table so then
         update the study data and link to activity 1 to print the patient
@@ -88,7 +128,15 @@ class MainGui(QMainWindow):
             Activity1.PrintDataToConsole(patient_details = self.pt_data[row])
         except:
             print("Activity 1 not yet completed")
-        
+
+        # update study and series tables
+        # initially clearing them
+        self.studiesTable.setRowCount(0)
+        self.seriesTable.setRowCount(0)
+        self.studythread = GetStudyInfoThread(self.pt_data[row]['id'])
+        self.studythread.study_details_sig.connect(self.UpdateStudyTable)
+        self.studythread.start()
+   
     def ImportBtnClicked(self):
         '''The user has clicked the import button so now get data
         on the patients in import directory.'''
@@ -185,11 +233,28 @@ class FindPatientsInImportThread(QThread):
 
     def run(self):
         '''Code that is run when the thread is started'''
-        print("starting thread")
         pt_in_import = ImportDicom.GetPatientsInImport(
             import_dir = self.import_dir
         )
         self.pt_details_sig.emit(pt_in_import)
+
+class GetStudyInfoThread(QThread):
+    '''Class to define the thread that finds the study data
+    associated with the clicked patient.
+    
+    Args:
+        pt_dbid (int) = the database id of the patient
+    '''
+    study_details_sig = pyqtSignal(list)
+    def __init__(self, pt_dbid):
+        QThread.__init__(self)
+        self.pt_dbid = pt_dbid
+
+    def run(self):
+        '''Code that is run when the thread is started'''
+        db_handler = DatabaseHandler.PacsDatabaseClass()
+        study_list = db_handler.GetStudyDetails(pt_id = self.pt_dbid)
+        self.study_details_sig.emit(study_list)
 
 def ShowGui():
     '''
