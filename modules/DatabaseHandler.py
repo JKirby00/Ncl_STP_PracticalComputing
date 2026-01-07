@@ -97,6 +97,26 @@ class PacsDatabaseClass:
     def InsertNewPatientData(self, data):
         '''Take the dictionary of scraped data and insert this into
         the database'''
+        # ad the patient to the database if they don't exist
+        first_study_uid = [key for key in data.keys()][0]
+        try:
+            id = self.GetDatabaseIdFromMRN(MRN = data[first_study_uid]["MRN"])
+        except:
+            self.CreateDatabaseConnection()
+            cursor = self.Conn.cursor()
+            sql_string = """INSERT INTO Patients (MRN,
+                Name, DateOfBirth, Address) VALUES (?,?,?,?)
+            """
+            
+            variables = (data[first_study_uid]["MRN"],
+                str(data[first_study_uid]["Name"]),
+                data[first_study_uid]["DOB"],
+                "")
+
+            cursor.execute(sql_string, variables)
+            self.Conn.commit()
+            self.CloseDatabaseConnection()
+
         for study_uid in data:
             # get the database id for the MRN
             id = self.GetDatabaseIdFromMRN(MRN = data[study_uid]["MRN"])

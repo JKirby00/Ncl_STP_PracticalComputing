@@ -5,6 +5,7 @@ from os import listdir
 from os.path import join
 from PyQt5.QtCore import QThread, pyqtSignal
 import DatabaseHandler
+from datetime import datetime
 
 def GetPatientsInImport(import_dir):
     '''Function to obtain a list of patients that currently
@@ -80,6 +81,8 @@ class ImportPatientDataThread(QThread):
                         "StudyDate":f.StudyDate,
                         "Type":f.SOPClassUID,
                         "MRN":self.mrn,
+                        "Name":f.PatientName,
+                        "DOB":datetime.strptime(f.PatientBirthDate, "%Y%m%d").strftime("%d/%m/%Y"),
                         "Series":{}
                     }
                 
@@ -102,3 +105,10 @@ class ImportPatientDataThread(QThread):
         db_handler = DatabaseHandler.PacsDatabaseClass()
         db_handler.InsertNewPatientData(data = self.data)
 
+        self.label_sig.emit(f"Import Complete")
+        self.progress_sig.emit(100)
+
+if __name__ == "__main__":
+    import pathlib
+    p = join(pathlib.Path(__file__).parent.parent.absolute(), "import", "CT1.3.12.2.1107.5.2.51.182900.30000025112810444972500000006.dcm")
+    f = pydicom.dcmread(p)
