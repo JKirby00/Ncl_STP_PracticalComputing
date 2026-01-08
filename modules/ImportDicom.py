@@ -94,7 +94,15 @@ class ImportPatientDataThread(QThread):
                         "ImageData":{}
                     }
 
-                self.data[study_uid]["Series"][series_uid]["ImageData"][f.InstanceNumber] = f.pixel_array
+                # Convert pixel data to HU for CT, leave MR unchanged
+                if hasattr(f, "Modality") and f.Modality.upper() == "CT":
+                    slope = getattr(f, "RescaleSlope", 1)
+                    intercept = getattr(f, "RescaleIntercept", 0)
+                    img_array = (f.pixel_array * slope) + intercept
+                else:
+                    img_array = f.pixel_array  # MR or other modalities: keep raw values
+
+                self.data[study_uid]["Series"][series_uid]["ImageData"][f.InstanceNumber] = img_array
 
             progress = int(((i+1)*100)/len(all_fnames))
             self.progress_sig.emit(progress)

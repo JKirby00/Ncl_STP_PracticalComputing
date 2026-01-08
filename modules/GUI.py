@@ -5,8 +5,8 @@ in the MiniPACS.
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem
-from PyQt5.QtWidgets import QDialog, QListWidgetItem
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtWidgets import QDialog, QListWidgetItem, QMenu, QAction
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -20,6 +20,7 @@ import DatabaseHandler
 import ImportDicom
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
 from Session1 import Activity1, Activity2
+from Session2 import ActivityB
 
 class MainGui(QMainWindow):
     '''This is the class that defines the main PACS graphical window.'''
@@ -31,7 +32,9 @@ class MainGui(QMainWindow):
         self.showMaximized()
         self.pt_data = None
         self.study_list = None
+        self.currentStudyRow = None
         self.series_list = None
+        self.currentSeriesRow = None
         self.image_data = None
         self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
@@ -45,6 +48,7 @@ class MainGui(QMainWindow):
         self.patientTable.cellClicked.connect(self.PatientRowClicked)
         self.importPatientBtn.clicked.connect(self.ImportBtnClicked)
         self.studiesTable.cellClicked.connect(self.StudyRowClicked)
+        self.studiesTable.itemSelectionChanged.connect(self.OnStudiesSelectionChanged)
         self.seriesTable.cellClicked.connect(self.SeriesRowClicked)
 
         self.seriesTable.setRowCount(0)
@@ -55,6 +59,12 @@ class MainGui(QMainWindow):
         self.img_viewer_canvas = FigureCanvas(Figure())
         self.viewerLayout.addWidget(self.img_viewer_canvas)
         self.img_viewer_canvas.mpl_connect('scroll_event',self.ScrollImage)
+
+        # enable right-click context menu on the canvas
+        self.img_viewer_canvas.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.img_viewer_canvas.customContextMenuRequested.connect(self.ShowWindowMenu)
+        # remember the last selected window preset (default initially)
+        self.current_window_preset = 'default'
 
     def ScrollImage(self, e):
         '''User has scroll on the image viewer so update slice shown'''
@@ -192,9 +202,19 @@ class MainGui(QMainWindow):
         self.studythread.study_details_sig.connect(self.UpdateStudyTable)
         self.studythread.start()
 
+    def OnStudiesSelectionChanged(self):
+        """
+        Triggered when the selection in seriesTable changes.
+        Resets windowing and clears the image if the study list is repopulated.
+        """
+        self.ApplyWindowPreset("default")
+        self.img_viewer_canvas.figure.clear()
+        self.img_viewer_canvas.draw_idle()
+
     def StudyRowClicked(self, row, col):
         '''The user has clicked on a row of the study table
         so update the series table with data'''
+        self.currentStudyRow = row
         self.seriesTable.setRowCount(0)
         self.seriesthread = GetSeriesInfoThread(self.study_list[row]['id'])
         self.seriesthread.series_details_sig.connect(self.UpdateSeriesTable)
@@ -203,6 +223,7 @@ class MainGui(QMainWindow):
     def SeriesRowClicked(self, row, col):
         '''The user has clicked on a row of the series table
         so get the image data and plot it.'''
+        self.currentSeriesRow = row
         self.imagesthread = GetImageDataThread(self.series_list[row]['id'])
         self.imagesthread.image_data_sig.connect(self.SetImageData)
         self.imagesthread.start()
@@ -215,12 +236,77 @@ class MainGui(QMainWindow):
         self.PlotImage(self.current_instance_num)
 
     def PlotImage(self, instance_number):
-        '''Plot the image on the GUI for the specified instance
-        number'''
+        """Plot the image on the GUI for the specified instance number."""
         self.img_viewer_canvas.figure.clf()
         self._subplot = self.img_viewer_canvas.figure.subplots()
-        self._subplot.imshow(self.image_data["images"][str(instance_number)], cmap='gray')
+        img = self.image_data["images"][str(instance_number)]
+
+        # apply current window preset if not default
+        if self.current_window_preset is None or self.current_window_preset == 'default':
+            display_img = img
+            title_suffix = " (default)"
+        else:
+            try:
+                display_img = ActivityB.window_image(img, self.current_window_preset)
+                title_suffix = f" (window: {self.current_window_preset})"
+            except:
+                print("Activity B not yet completed")
+
+        self._subplot.imshow(display_img, cmap='gray')
+        self._subplot.set_title(f"Slice {instance_number}{title_suffix}")
         self.img_viewer_canvas.draw_idle()
+
+
+    def ShowWindowMenu(self, pos):
+        """
+        Show a right-click context menu with windowing presets.
+
+        Inputs:
+            pos (QPoint): Position from the canvas where the menu should appear.
+        Outputs:
+            None: Displays the menu and triggers actions (side effect).
+        """
+        menu = QMenu(self)
+
+        # Always include "Default"
+        default_act = QAction("Default", menu)
+        default_act.triggered.connect(lambda checked=False: self.ApplyWindowPreset("default"))
+        menu.addAction(default_act)
+
+        # Only add CT-specific presets if the current study is CT
+        study = self.study_list[self.currentStudyRow]
+        if study.get('StudyType') == "1.2.840.10008.5.1.4.1.1.2":
+            ct_presets = [
+                ("Lung (-600 / 1500)", "lung"),
+                ("Soft Tissue (40 / 400)", "soft tissue"),
+                ("Bone (300 / 1500)", "bone"),
+            ]
+            for text, key in ct_presets:
+                act = QAction(text, menu)
+                # Use a default arg to avoid late-binding of 'key'
+                act.triggered.connect(lambda checked=False, k=key: self.ApplyWindowPreset(k))
+                menu.addAction(act)
+
+        # Show the menu at the cursor location
+        global_pos = self.img_viewer_canvas.mapToGlobal(pos)
+        menu.exec_(global_pos)
+
+    def ApplyWindowPreset(self, preset):
+        """
+        Apply a window preset to the currently displayed slice and update the view.
+
+        Inputs:
+            preset (str): One of "default", "lung", "soft tissue", "bone".
+        Outputs:
+            None: Updates the canvas with the windowed image (side effect).
+        """
+        if self.image_data is None:
+            return
+
+        # Remember selection so it persists across scroll
+        self.current_window_preset = preset
+        # Re-plot the current slice with the selected window
+        self.PlotImage(self.current_instance_num)
 
     def ImportBtnClicked(self):
         '''The user has clicked the import button so now get data
