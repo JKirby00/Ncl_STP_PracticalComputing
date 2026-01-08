@@ -15,10 +15,11 @@ import sys
 import pathlib
 from os.path import join
 from datetime import datetime
-sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
+
 import DatabaseHandler
 import ImportDicom
-import Activity1, Activity2
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
+from Session1 import Activity1, Activity2
 
 class MainGui(QMainWindow):
     '''This is the class that defines the main PACS graphical window.'''
@@ -60,7 +61,7 @@ class MainGui(QMainWindow):
         if self.image_data is None:
             return
         max_instance_num = max(self.image_data["instance_ids"])
-        min_instance_num = max(self.image_data["instance_ids"])
+        min_instance_num = min(self.image_data["instance_ids"])
 
         if e.button == 'up':
             if self.current_instance_num == max_instance_num:
