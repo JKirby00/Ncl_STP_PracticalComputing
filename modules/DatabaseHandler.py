@@ -256,6 +256,10 @@ class PacsDatabaseClass:
                 for instance_number in data[study_uid]["Series"][series_uid]["ImageData"]:
                     # flatten the pixel array and convert to bytes
                     img_arr = data[study_uid]["Series"][series_uid]["ImageData"][instance_number]
+
+                    # normalize data type
+                    img_arr = np.asarray(img_arr, dtype=np.int16)
+                    # make contiguous for efficient byte conversion
                     img_arr = np.ascontiguousarray(img_arr)
                     shape = img_arr.shape
                     img_bytes = img_arr.ravel().tobytes()
@@ -277,9 +281,6 @@ class PacsDatabaseClass:
                     self.CloseDatabaseConnection()
 
 
-
-
 if __name__ == "__main__":
     test = PacsDatabaseClass()
     test.GetPatientDetails()
-    

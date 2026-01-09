@@ -78,7 +78,7 @@ class ImportPatientDataThread(QThread):
                 study_uid = f.StudyInstanceUID
                 if study_uid not in self.data:
                     self.data[study_uid] = {
-                        "StudyDate":f.StudyDate,
+                        "StudyDate": (f.StudyDate if getattr(f, "StudyDate", None) else "19000101"),
                         "Type":f.SOPClassUID,
                         "MRN":self.mrn,
                         "Name":f.PatientName,

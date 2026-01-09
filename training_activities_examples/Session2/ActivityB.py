@@ -1,5 +1,5 @@
 """
-ActivityB1.py — CT DICOM plotting, HU rescaling, and windowing presets
+ActivityB.py — CT DICOM plotting, HU rescaling, and windowing presets
 
 This example script shows how to:
  1) Load a DICOM file with pydicom, and plot the image
@@ -117,6 +117,6 @@ def demo(dicom_path, window_presets):
         print("Non-CT modality detected. HU rescaling and CT windowing skipped.")
 
 if __name__ == "__main__":
-    dicom_path = r"A:\STPComputing\import\CT1.2.752.243.1.1.20260108132323816.6100.12002.dcm"
+    dicom_path = r"A:\STPComputing\import\Anne Dippet\CT1.2.752.243.1.1.20260108132323816.6100.12002.dcm"
     window_presets = ['soft tissue', 'lung', 'bone']
     demo(dicom_path, window_presets)
