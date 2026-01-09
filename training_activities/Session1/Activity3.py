@@ -1,0 +1,1 @@
+'''This is the file for Activity 3 in Session 1.'''
