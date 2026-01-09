@@ -1,5 +1,5 @@
 """
-ActivityB1.py — CT DICOM plotting, HU rescaling, and windowing presets
+ActivityB.py — CT DICOM plotting, HU rescaling, and windowing presets
 
 This example script shows how to:
  1) Load a DICOM file with pydicom, and plot the image
