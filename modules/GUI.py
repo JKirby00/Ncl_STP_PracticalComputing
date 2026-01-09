@@ -249,8 +249,9 @@ class MainGui(QMainWindow):
             try:
                 display_img = ActivityB.window_image(img, self.current_window_preset)
                 title_suffix = f" (window: {self.current_window_preset})"
-            except:
-                print("Activity B not yet completed")
+            except Exception as e:
+                print("Activity B isn't working yet!")
+                print(repr(e))
 
         self._subplot.imshow(display_img, cmap='gray')
         self._subplot.set_title(f"Slice {instance_number}{title_suffix}")
