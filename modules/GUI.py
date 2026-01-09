@@ -19,7 +19,7 @@ from datetime import datetime
 import DatabaseHandler
 import ImportDicom
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
-from Session1 import Activity1, Activity2
+from Session1 import Activity1, Activity2, Activity3
 from Session2 import ActivityB
 
 class MainGui(QMainWindow):
@@ -232,6 +232,9 @@ class MainGui(QMainWindow):
         '''Image data has been sent back from the thread. Read
         this data and show it on the GUI'''
         self.image_data = image_data
+
+        Activity3.GetSomeImageStats(image_data)
+
         self.current_instance_num = int(0.5*(max(image_data['instance_ids']) - min(image_data['instance_ids'])))
         self.PlotImage(self.current_instance_num)
 
