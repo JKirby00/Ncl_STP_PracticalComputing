@@ -1,6 +1,6 @@
 """Activity A - DICOM File Handling Functions
 
-This activity asks you to implement three functions related to DICOM file handling using the pydicom library
+This activity asks you to implement functions related to DICOM file handling using the pydicom library
 
 TODO Add easier tasks 
 
@@ -35,8 +35,12 @@ def create_list_filepaths(folder_path): #Diff 3?
     """    
     list_filepaths = []
     filenames = os.listdir(folder_path)
+    
+    # Loop through files in the folder and add DICOM file paths to the list
     for file in filenames:
+        # Check if the file is a DICOM file (assuming .dcm extension)
         if file.endswith(".dcm"):
+            # Create full file path
             filepath = os.path.join(folder_path, file)
             list_filepaths.append(filepath)
     return list_filepaths
@@ -91,7 +95,8 @@ def scrape_dicom_data(input_filepaths): # Diff 3?
         
         # Extract pixel data
         pixel_data = ds.pixel_array if "PixelData" in ds else None # account for files without pixel data
-        
+
+        # Append to scraped data list
         scraped_data.append({
             "demographics": demographics,
             "pixel_data": pixel_data
@@ -110,11 +115,13 @@ def search_dicom_hierarchy(filepaths): # Diff 4?
     hierarchy = {}
     for filepath in filepaths:
         ds = pydicom.dcmread(filepath)
-        
+
+        # Extract relevant identifiers
         patient_id = ds.PatientID                   #patient_id = ds.get("PatientID", "Unknown") TODO would this be better?
         study_instance_uid = ds.StudyInstanceUID    #study_instance_uid = ds.get("StudyInstanceUID", "Unknown")
         series_instance_uid = ds.SeriesInstanceUID  #series_instance_uid = ds.get("SeriesInstanceUID", "Unknown")
 
+        # Create nested dictionary structure based on whether the keys already exist
         if patient_id not in hierarchy:
             hierarchy[patient_id] = {}
         if study_instance_uid not in hierarchy[patient_id]:
@@ -122,6 +129,7 @@ def search_dicom_hierarchy(filepaths): # Diff 4?
         if series_instance_uid not in hierarchy[patient_id][study_instance_uid]:
             hierarchy[patient_id][study_instance_uid][series_instance_uid] = []
 
+        # Append the filepath to the appropriate series
         hierarchy[patient_id][study_instance_uid][series_instance_uid].append(filepath)
     return hierarchy
 
