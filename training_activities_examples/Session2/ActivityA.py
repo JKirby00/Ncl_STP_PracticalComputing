@@ -25,7 +25,7 @@ import pydicom
 import os
 
 
-def CreateListFilepaths(folder_path): #Diff 3?
+def create_list_filepaths(folder_path): #Diff 3?
     """Function to create a list of file paths from a folder containing DICOM files.
 
     Inputs:
@@ -42,7 +42,7 @@ def CreateListFilepaths(folder_path): #Diff 3?
     return list_filepaths
 
 
-def AnonymiseAndSaveDICOM(input_filepaths, output_folder): # Diff 2?
+def anonymise_and_save_dicom(input_filepaths, output_folder): # Diff 2?
     """Function to anonymise a set of DICOM files and save them at a specified location.
     
     Inputs:
@@ -69,7 +69,7 @@ def AnonymiseAndSaveDICOM(input_filepaths, output_folder): # Diff 2?
         ds.save_as(output_filepath)
 
 
-def ScrapeDICOMData(input_filepaths): # Diff 3?
+def scrape_dicom_data(input_filepaths): # Diff 3?
     """Function to scrape demographics and pixel data from DICOM files.
 
     Inputs:
@@ -99,7 +99,7 @@ def ScrapeDICOMData(input_filepaths): # Diff 3?
     return scraped_data
 
 
-def SearchDICOMHierarchy(filepaths): # Diff 4?
+def search_dicom_hierarchy(filepaths): # Diff 4?
     """Function to search a folder containing DICOM files and identify the hierarchy of patient, study, and series.
     
     Inputs:
@@ -128,17 +128,17 @@ def SearchDICOMHierarchy(filepaths): # Diff 4?
 
 if __name__ == "__main__":
     # Test each function
-    filepaths = CreateListFilepaths("./import/")
+    filepaths = create_list_filepaths("./import/")
     print("Original Filepaths", filepaths)
     anon_filepath = "./anonymised/"
     os.makedirs(anon_filepath, exist_ok=True)
-    AnonymiseAndSaveDICOM(filepaths, anon_filepath)
+    anonymise_and_save_dicom(filepaths, anon_filepath)
 
-    anon_paths = CreateListFilepaths("./anonymised/") # Checking the anonymised file paths
+    anon_paths = create_list_filepaths("./anonymised/") # Checking the anonymised file paths
     print("Anonymised Filepaths", anon_paths)
 
-    scraped_data = ScrapeDICOMData(filepaths)
+    scraped_data = scrape_dicom_data(filepaths)
     print("Scraped Data", scraped_data)
 
-    hierarchy = SearchDICOMHierarchy(filepaths)
+    hierarchy = search_dicom_hierarchy(filepaths)
     print("Hierarchy", hierarchy)
