@@ -4,14 +4,19 @@ This activity asks you to implement functions related to DICOM file handling usi
 
 TODO Add easier tasks 
 
-1)  Write a function that creates a list of file paths from a folder containing DICOM files.
+1)  Write a function that will print Patient Name and Patient ID from a DICOM file.
 
-2)  Write a function that anonymises a set of DICOM files and saves them at a specified location.
+2)  Write a function that creates a list of file paths from a folder containing DICOM files.
 
-3)  Write a function that scrapes some data (demographics + pixel data) from some DICOM files and returns it 
+3)  Write a function that creates a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
+    containing the keys "MRN" and "Name".
+
+4)  Write a function that anonymises a set of DICOM files and saves them at a specified location.
+
+5)  Write a function that scrapes some data (demographics + pixel data) from some DICOM files and returns it 
     (so that a pre-written function can save this data to a database).
 
-4)  Write a function that searches a folder containing DICOM files and identifies the hierarchy of the patient, 
+6)  Write a function that searches a folder containing DICOM files and identifies the hierarchy of the patient, 
     study and series for each. These are returned as a dictionary. 
 
 Hints:
@@ -25,14 +30,27 @@ import pydicom
 import os
 
 
+def print_patient_info(dicom_filepath): #Diff 1?
+    """Function to print Patient Name and Patient ID from a DICOM file.
+
+    Inputs:
+        dicom_filepath (str): The file path to the DICOM file
+    Outputs:
+        None: The function prints the Patient Name and Patient ID
+    """
+    ds = pydicom.dcmread(dicom_filepath)
+    print(f"Patient Name: {ds.PatientName}")
+    print(f"Patient ID: {ds.PatientID}")
+
+
 def create_list_filepaths(folder_path): #Diff 3?
     """Function to create a list of file paths from a folder containing DICOM files.
 
     Inputs:
-        folder_path (str): The folder containing DICOM files
+        folder_path (str): The folder to check for DICOM files
     Outputs:
         list_filepaths (list): A list of file paths to the DICOM files
-    """    
+    """
     list_filepaths = []
     filenames = os.listdir(folder_path)
     
@@ -44,6 +62,28 @@ def create_list_filepaths(folder_path): #Diff 3?
             filepath = os.path.join(folder_path, file)
             list_filepaths.append(filepath)
     return list_filepaths
+
+
+def list_patient_mrns(file_paths):
+    """Function to create a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
+    containing the keys "MRN" and "Name".
+
+    Inputs:
+        folder_path (str): The folder containing DICOM files
+    Outputs:
+        pt_dicts (list): A list of dictionaries with patient MRNs and Names [{"MRN":..., "Name":...}]
+    """
+    mrns_found = []
+    pt_dicts = []
+
+    for fpath in file_paths:
+        ds = pydicom.dcmread(fpath)
+        if ds.PatientID in mrns_found:
+            # ignore files with same MRN as one we've already found
+            continue
+        mrns_found.append(ds.PatientID)
+        pt_dicts.append({"MRN":ds.PatientID, "Name":ds.PatientName})
+    return pt_dicts
 
 
 def anonymise_and_save_dicom(input_filepaths, output_folder): # Diff 2?

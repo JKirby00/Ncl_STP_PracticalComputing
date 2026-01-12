@@ -1,11 +1,16 @@
 '''This module contains a collection of functions for 
 importing data from DICOM files into the database'''
 import pydicom
+import sys
 from os import listdir
 from os.path import join
+import pathlib
 from PyQt5.QtCore import QThread, pyqtSignal
 import DatabaseHandler
 from datetime import datetime
+
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
+from Session2 import ActivityA
 
 def GetPatientsInImport(import_dir):
     '''Function to obtain a list of patients that currently
@@ -19,23 +24,13 @@ def GetPatientsInImport(import_dir):
     Returns:
         List of dictionaries where each dict has keys: "MRN" and "Name"    
     '''
-    mrns_found = []
-    pt_dicts = []
-
     # loop through each file in the import directory
-    fnames = listdir(import_dir)
-    for fname in fnames:
-        if ".dcm" not in fname.lower():
-            # ignore files that are not dicom
-            continue
-
-        f = pydicom.dcmread(join(import_dir, fname))
-        if f.PatientID in mrns_found:
-            # ignore files with same MRN as one we've already found
-            continue
-
-        mrns_found.append(f.PatientID)
-        pt_dicts.append({"MRN":f.PatientID, "Name":f.PatientName})
+    fpaths = ActivityA.create_list_filepaths(import_dir)
+    # return a list of dictionaries with patient MRNs and Names
+    pt_dicts = ActivityA.list_patient_mrns(fpaths)
+    
+    if pt_dicts is None:
+        pt_dicts = []
 
     return pt_dicts
 
