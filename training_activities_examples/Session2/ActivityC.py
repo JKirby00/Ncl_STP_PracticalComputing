@@ -2,7 +2,7 @@
 ActivityC.py — image histograms, and edge detection
 
 This example script shows how to:
- 1) Create a histogram from a 2D array and how to plot this data
+ 1) Create a histogram from a 2D array and plot this data
  2) Use cv2 to identify and plot edges at the air-tissue transition
 """
 

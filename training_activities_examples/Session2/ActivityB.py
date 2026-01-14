@@ -2,7 +2,7 @@
 ActivityB.py — CT DICOM plotting, HU rescaling, and windowing presets
 
 This example script shows how to:
- 1) Load a DICOM file with pydicom, and plot the image
+ 1) Load a DICOM file with pydicom and plot the image
  2) Rescale stored pixel values to Hounsfield Units (HU)
  3) Apply common windowing presets (lung, soft tissue, bone)
 """
@@ -46,17 +46,17 @@ def rescale_to_hu(ds):
     hu = arr * slope + intercept
     return hu
 
-def window_image(img_hu, preset=None):
+def window_image(img_hu, preset="default"):
     """
     Apply CT windowing based on preset (center, width) and normalize to [0, 1].
 
     Inputs:
         img_hu (np.ndarray): HU image array to window.
-        preset (str or None, optional): Window preset name. Supported values:
-            "lung", "soft tissue", "bone", "default", or None.
-            If "default" or None, returns the original img_hu (no windowing).
+        preset (str): Window preset name. Supported values:
+            "lung", "soft tissue", "bone", or "default".
+            If "default", returns the original img_hu (no windowing).
     Outputs:
-        np.ndarray: Windowed image array in [0, 1] for display, or original HU array
+        np.ndarray: Windowed image for display, or original HU array
         if no windowing is applied.
     """
     # Common CT window presets (center, width)
@@ -67,7 +67,7 @@ def window_image(img_hu, preset=None):
         "default": None,
     }
     # Default behavior: no windowing (return original HU)
-    if preset is None or preset == "default":
+    if preset == "default":
         return img_hu
 
     if preset not in window_presets:
@@ -79,24 +79,11 @@ def window_image(img_hu, preset=None):
     lower = center - (width / 2.0)
     upper = center + (width / 2.0)
 
-    clipped = np.clip(img_hu, lower, upper)
-    # Normalize to [0, 1] for display
-    windowed = (clipped - lower) / (upper - lower)
+    windowed = np.clip(img_hu, lower, upper)
     return windowed
 
-def demo(dicom_path, window_presets):
-    """
-    Demonstrate loading a DICOM, plotting stored pixel values, rescaling to HU for CT,
-    and applying window presets.
-
-    Inputs:
-        dicom_path (str or pathlib.Path): Path to the DICOM file to load.
-        window_presets (Iterable[str]): Collection of preset names to apply
-            (e.g., ["lung", "soft tissue", "bone"]).
-    Outputs:
-        None: Prints information and shows multiple plots (side effects).
-    """
-    print("DICOM:", dicom_path)
+if __name__ == "__main__":
+    dicom_path = r"A:\STPComputing\import\Anne Dippet\CT1.2.752.243.1.1.20260108132323816.6100.12002.dcm"
     ds = pydicom.dcmread(dicom_path)
 
     # Plot stored pixel data
@@ -110,13 +97,7 @@ def demo(dicom_path, window_presets):
         plot_image(img_hu, title="CT image in Hounsfield Units (HU)")
 
         # Apply window presets and plot
+        window_presets = ['soft tissue', 'lung', 'bone']
         for preset in window_presets:
             win = window_image(img_hu, preset)
             plot_image(win, title=f"Windowed: {preset}")
-    else:
-        print("Non-CT modality detected. HU rescaling and CT windowing skipped.")
-
-if __name__ == "__main__":
-    dicom_path = r"A:\STPComputing\import\Anne Dippet\CT1.2.752.243.1.1.20260108132323816.6100.12002.dcm"
-    window_presets = ['soft tissue', 'lung', 'bone']
-    demo(dicom_path, window_presets)

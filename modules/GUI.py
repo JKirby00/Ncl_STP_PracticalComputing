@@ -244,13 +244,15 @@ class MainGui(QMainWindow):
         self._subplot = self.img_viewer_canvas.figure.subplots()
         img = self.image_data["images"][str(instance_number)]
 
-        # apply current window preset if not default
-        if self.current_window_preset is None or self.current_window_preset == 'default':
-            display_img = img
-            title_suffix = " (default)"
-        else:
+        # Start with default values
+        title_suffix = " (default)"
+        display_img = img
+
+        # Apply current window preset if not default
+        if self.current_window_preset not in (None, 'default'):
             try:
-                display_img = ActivityB.window_image(img, self.current_window_preset)
+                # Use preset if available, fallback to img if None
+                display_img = ActivityB.window_image(img, self.current_window_preset) or img
                 title_suffix = f" (window: {self.current_window_preset})"
             except Exception as e:
                 print("Activity B isn't working yet!")
