@@ -11,5 +11,17 @@ def CalculateBMI(height, weight):
 
     Returns: The calculated BMI as a float
     '''
+    # Note: Additional validation logic could be added to this
+    # to check for whether height or weight are sensible values
 
-    return "Activity not yet completed"
+    # first check that the height and weight can be converted to a float 
+    try:
+        height = float(height)
+        weight = float(weight)
+    except:
+        return "Height or weight given is not a number"
+    
+    # calculate BMI
+    bmi = weight / (height**2)
+
+    return bmi
