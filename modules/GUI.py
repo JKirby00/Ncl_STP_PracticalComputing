@@ -19,7 +19,7 @@ from datetime import datetime
 import DatabaseHandler
 import ImportDicom
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
-from Session1 import Activity1, Activity2, Activity3
+from Session1 import Activity1, Activity2, Activity3, Activity7
 from Session2 import ActivityB
 
 class MainGui(QMainWindow):
@@ -50,6 +50,7 @@ class MainGui(QMainWindow):
         self.studiesTable.cellClicked.connect(self.StudyRowClicked)
         self.studiesTable.itemSelectionChanged.connect(self.OnStudiesSelectionChanged)
         self.seriesTable.cellClicked.connect(self.SeriesRowClicked)
+        self.actionBMI_Calculator.triggered.connect(self.BmiBtnClicked)
 
         self.seriesTable.setRowCount(0)
         self.studiesTable.setRowCount(0)
@@ -65,6 +66,13 @@ class MainGui(QMainWindow):
         self.img_viewer_canvas.customContextMenuRequested.connect(self.ShowWindowMenu)
         # remember the last selected window preset (default initially)
         self.current_window_preset = 'default'
+
+    def BmiBtnClicked(self):
+        '''BMI Toolbar menu item has been selected so show
+        the BMI dialog box'''
+        bmi_dialog = BMIDialog()
+        bmi_dialog.exec_()
+        bmi_dialog.show()
 
     def ScrollImage(self, e):
         '''User has scroll on the image viewer so update slice shown'''
@@ -262,7 +270,6 @@ class MainGui(QMainWindow):
         self._subplot.set_title(f"Slice {instance_number}{title_suffix}")
         self.img_viewer_canvas.draw_idle()
 
-
     def ShowWindowMenu(self, pos):
         """
         Show a right-click context menu with windowing presets.
@@ -329,6 +336,33 @@ class MainGui(QMainWindow):
         dialog = PatientListDialog(pt_list, self.import_dir)
         dialog.exec_()
         dialog.show()
+
+class BMIDialog(QDialog):
+    '''This class defines the dialog that shows inputs
+    for height and weight and a button for calculating BMI'''
+    def __init__(self):
+        '''This function is called when the dialog class
+        is first initialised'''
+        super(BMIDialog, self).__init__()
+        uic.loadUi(r"./ui/bmi_dialog.ui", self)
+
+        self.CalculateBtn.clicked.connect(self.CalculateBMI)
+
+        self.show()
+
+    def CalculateBMI(self):
+        '''The calculate BMI button has been clicked. Call
+        the function in Activity 7 Session 1 to get the value
+        of the BMI'''
+        height_input = self.HeightLineEdit.text()
+        weight_input = self.WeightLineEdit.text()
+
+        bmi = Activity7.CalculateBMI(
+            height = height_input,
+            weight = weight_input)
+        
+        self.BMIAnswerLabel.setText(str(bmi))
+
 
 class PatientListDialog(QDialog):
     '''This is the class that defines the dialog that shows the

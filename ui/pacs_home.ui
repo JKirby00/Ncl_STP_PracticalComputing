@@ -628,6 +628,28 @@ color: rgb(221, 221, 221);</string>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1090</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionBMI_Calculator"/>
+   </widget>
+   <addaction name="menuTools"/>
+  </widget>
+  <action name="actionBMI_Calculator">
+   <property name="text">
+    <string>BMI Calculator</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
