@@ -86,6 +86,7 @@ class ImportPatientDataThread(QThread):
                     self.data[study_uid]["Series"][series_uid] = {
                         "SeriesNumber":f.SeriesNumber,
                         "Description":f.ProcedureCodeSequence[0].CodeMeaning,
+                        "PixelSpacing":f.PixelSpacing,
                         "ImageData":{}
                     }
 

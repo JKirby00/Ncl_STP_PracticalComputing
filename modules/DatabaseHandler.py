@@ -230,6 +230,8 @@ class PacsDatabaseClass:
 
             # now add each series
             for series_uid in data[study_uid]["Series"]:
+                px_spacing = data[study_uid]["Series"][series_uid]["PixelSpacing"]
+
                 self.CreateDatabaseConnection()
                 cursor = self.Conn.cursor()
             
@@ -268,13 +270,15 @@ class PacsDatabaseClass:
                     cursor = self.Conn.cursor()
                 
                     sql_string = """INSERT INTO Images (InstanceNumber,
-                        PixelData, SeriesDbId, Shape1, Shape2) VALUES (?,?,?,?,?)
+                        PixelData, SeriesDbId, Shape1, Shape2, PixelSpacingRow, PixelSpacingCol) VALUES (?,?,?,?,?,?,?)
                     """
                     variables = (instance_number,
                         sqlite3.Binary(img_bytes),
                         series_db_id,
                         int(shape[0]),
-                        int(shape[1]))
+                        int(shape[1]),
+                        float(px_spacing[0]),
+                        float(px_spacing[1]))
 
                     cursor.execute(sql_string, variables)
                     self.Conn.commit()
