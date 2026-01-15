@@ -87,6 +87,7 @@ class ImportPatientDataThread(QThread):
                         "SeriesNumber":f.SeriesNumber,
                         "Description":f.ProcedureCodeSequence[0].CodeMeaning,
                         "PixelSpacing":f.PixelSpacing,
+                        "SliceThickness":f.SliceThickness,
                         "ImageData":{}
                     }
 
@@ -116,3 +117,5 @@ if __name__ == "__main__":
     import pathlib
     p = join(pathlib.Path(__file__).parent.parent.absolute(), "import", "CT1.3.12.2.1107.5.2.51.182900.30000025112810444972500000006.dcm")
     f = pydicom.dcmread(p)
+    print("***")
+    print(f.SliceThickness)
