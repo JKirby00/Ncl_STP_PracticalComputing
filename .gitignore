@@ -208,6 +208,11 @@ __marimo__/
 
 # database file
 database/Yr2PracticalComputingDb.db
+*.db
 
 # dicom files
 *.dcm
+
+# excel files
+*.xlsx
+*.csv
