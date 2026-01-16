@@ -19,7 +19,8 @@ from datetime import datetime
 import DatabaseHandler
 import ImportDicom
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
-from Session1 import Activity1, Activity2, Activity3, Activity7, Activity8
+from Session1 import Activity1, Activity2, Activity3, Activity7
+from Session1 import Activity8, Activity9
 from Session2 import ActivityB
 
 class MainGui(QMainWindow):
@@ -36,6 +37,7 @@ class MainGui(QMainWindow):
         self.series_list = None
         self.currentSeriesRow = None
         self.image_data = None
+        self.current_patient_row = None
         self.import_dir = join(pathlib.Path(__file__).parent.parent.absolute(), "import")
 
         # create an instance of the database handler class
@@ -51,6 +53,7 @@ class MainGui(QMainWindow):
         self.studiesTable.itemSelectionChanged.connect(self.OnStudiesSelectionChanged)
         self.seriesTable.cellClicked.connect(self.SeriesRowClicked)
         self.actionBMI_Calculator.triggered.connect(self.BmiBtnClicked)
+        self.exportDataBtn.clicked.connect(self.ExportBtnClicked)
 
         self.seriesTable.setRowCount(0)
         self.studiesTable.setRowCount(0)
@@ -66,6 +69,20 @@ class MainGui(QMainWindow):
         self.img_viewer_canvas.customContextMenuRequested.connect(self.ShowWindowMenu)
         # remember the last selected window preset (default initially)
         self.current_window_preset = 'default'
+
+    def ExportBtnClicked(self):
+        '''The export button has been clicked, so send data
+        to the Activity 9 function to save to Excel.'''
+        
+        if self.current_patient_row is None:
+            pt_data = None
+        else:
+            pt_data = self.pt_data[self.current_patient_row]
+
+        Activity9.WriteDataToExcel(
+            pt_data = pt_data,
+            study_data = self.study_list,
+            series_data = self.series_list)
 
     def BmiBtnClicked(self):
         '''BMI Toolbar menu item has been selected so show
@@ -212,6 +229,7 @@ class MainGui(QMainWindow):
         '''User has clicked on a patient in the patient table so then
         update the study data and link to activity 1 to print the patient
         details to the console.'''
+        self.current_patient_row = row
         try:
             Activity1.PrintDataToConsole(patient_details = self.pt_data[row])
         except:
