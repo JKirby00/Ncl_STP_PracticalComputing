@@ -19,7 +19,7 @@ from datetime import datetime
 import DatabaseHandler
 import ImportDicom
 sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
-from Session1 import Activity1, Activity2, Activity3, Activity7
+from Session1 import Activity1, Activity2, Activity3, Activity7, Activity8
 from Session2 import ActivityB
 
 class MainGui(QMainWindow):
@@ -193,6 +193,21 @@ class MainGui(QMainWindow):
                 cell_item = QTableWidgetItem(str(series_list[row_id][col_name]))
                 self.seriesTable.setItem(row_id, col_id, cell_item)
 
+        self.VolsThread = CalculateExternalVolumesThread(self.series_list)
+        self.VolsThread.vol_calculated_sig.connect(self.UpdateExternalVol)
+        self.VolsThread.start()
+
+    def UpdateExternalVol(self, vol_data):
+        '''Data has been sent back from the CalculateExternalVolumes
+        Thread so update the series table with the volume data.
+        
+        Args:
+            vol_data (dict) = Dict with keys: "table_row" and "content"    
+        '''
+        # create a new cell with the content and then add it to the table
+        new_cell = QTableWidgetItem(vol_data["content"])
+        self.seriesTable.setItem(vol_data["table_row"], 2, new_cell)
+
     def PatientRowClicked(self, row, col):
         '''User has clicked on a patient in the patient table so then
         update the study data and link to activity 1 to print the patient
@@ -363,7 +378,6 @@ class BMIDialog(QDialog):
         
         self.BMIAnswerLabel.setText(str(bmi))
 
-
 class PatientListDialog(QDialog):
     '''This is the class that defines the dialog that shows the
     user the list of patients in the import directory.'''
@@ -502,6 +516,42 @@ class GetImageDataThread(QThread):
         db_handler = DatabaseHandler.PacsDatabaseClass()
         image_data = db_handler.GetImageData(series_id = self.series_dbid)
         self.image_data_sig.emit(image_data)
+
+class CalculateExternalVolumesThread(QThread):
+    '''Class to define the thread that calls the function
+    written as part of Activity 8 in session 1 to calculate
+    the volume of the external.'''
+    vol_calculated_sig = pyqtSignal(dict)
+    def __init__(self, series_list):
+        QThread.__init__(self)
+        self.series_list = series_list
+        self.PacsDatabaseClass = DatabaseHandler.PacsDatabaseClass()
+
+    def run(self):
+        '''Code to run when thread is started'''
+        for i in range(len(self.series_list)):
+            img_data = self.PacsDatabaseClass.GetImageData(
+                series_id = self.series_list[i]["id"])
+            
+            try:
+                vol = Activity8.EstimateExternalVolume(
+                        px_arrs = img_data["images"],
+                        slice_thickness = img_data["slice_thickness"],
+                        row_px_spacing = img_data["row_pixel_spacing"],
+                        col_px_spacing = img_data["col_pixel_spacing"],
+                        instance_numbers = img_data["instance_ids"])
+                
+                self.vol_calculated_sig.emit({
+                    "table_row":i,
+                    "content":str(vol)}
+                )
+            except Exception as e:
+                print(e)
+                self.vol_calculated_sig.emit({
+                    "table_row":i,
+                    "content":"Error in function"}
+                )
+
 
 def ShowGui():
     '''

@@ -157,7 +157,10 @@ class PacsDatabaseClass:
 
         image_data = {
             "instance_ids":instance_ids,
-            "images":{}}
+            "images":{},
+            "row_pixel_spacing":images[0][6],
+            "col_pixel_spacing":images[0][7],
+            "slice_thickness":images[0][8]}
         
         for image in images:
             image_data["images"][str(image[1])] = np.frombuffer(
