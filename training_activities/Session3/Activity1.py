@@ -1,32 +1,26 @@
 """Activity - Databases
 
-1) Write some simple SQL queries to obtain data, and then add these into pre-written python functions that query the database (diff=2) 
-
-2) Write the docstrings for the database query functions you just updated 
-
-3) Write tests for the database query functions: 
-
+1) Write some simple SQL queries into the empty dictionary 'sql_queries' below to get the required information (diff=1-2)
+2) Complete the query_database function to connect to the database, execute a query and return the results (diff=1)
+3) Write functions to use your SQL queries and query_database function to return the results (diff=1)
+4) Write the docstrings for the database query functions you have just created  (diff=1) 
+5) Write tests for the database query functions: (diff=3)
     - Specified usual behaviour 
     - Specified edge cases 
     - Errors 
-
-4) Review the practical from Session 2 and compile a list of specifications for one or more of the DICOM functions 
-
-5) Turn the specifications into unit tests 
-
-6) Review the mini-PACs application and compile a list of product specifications 
-
-7) Turn the specifications into system tests 
-
+6) Review the practical from Session 2 and compile a list of specifications for one or more of the DICOM functions 
+7) Turn the specifications into unit tests 
+8) Review the mini-PACs application and compile a list of product specifications 
+9) Turn the specifications into system tests 
 
 """
 import sqlite3
 import os
 import pathlib
 
-# Add your SQL queries here
+# Add your SQL queries into the empty strings below
 sql_queries = {
-    "get_all_patients": "",
+    "get_all_patients": "SELECT * FROM Patients",
     "get_patient_by_mrn": "",
     "get_all_studies": "",
     "get_study_by_id": "",
@@ -38,30 +32,21 @@ sql_queries = {
     "insert_new_series": ""
 }
 
+
+def get_patients():
+    pass
+
+
 def query_database(query, params=()):
     '''
-    Connect and query the database.
-
     Inputs:
         query (str): The SQL query to execute
         params (tuple): The parameters to use in the SQL query
     Outputs: 
-        results: The results of the query
     '''
     conn = None
     cursor = None
-    try:
-        db_path = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "database", "Yr2PracticalComputingDb.db")
-        conn = sqlite3.connect(db_path, timeout=30)
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        results = cursor.fetchall()
-        cursor.close()  
-        conn.close()
-        return results
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-        return None
+    db_path = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "database", "Yr2PracticalComputingDb.db")
 
 
 if __name__ == "__main__":

@@ -12,8 +12,8 @@ This activity asks you to implement functions related to DICOM file handling usi
 7) Write a function that searches a folder containing DICOM files and identifies the hierarchy of patient, study, and series. Diff 5.
 
 Hints:
-    some_string.endswith(".dcm") may be useful for checking if a file is a DICOM file.
     os.listdir() may be useful for getting a list of files in a folder.
+    some_string.endswith(".dcm") may be useful for checking if a file is a DICOM file.
     os.path.join() is useful for creating file paths.
     os.basename() is useful for getting the filename from a file path.
     pydicom.dcmread() is used to read a DICOM file.
@@ -130,7 +130,7 @@ def scrape_dicom_data(input_filepaths): # Diff 4
     for filepath in input_filepaths:
         ds = pydicom.dcmread(filepath)
         
-        # Extract demographics (this is just an example of the types of information to change)
+        # Extract demographics (this is just an example of the types of information to scrape)
         demographics = {
             "PatientName": ds.PatientName,
             "PatientID": ds.PatientID,
