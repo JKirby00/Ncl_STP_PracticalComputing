@@ -24,14 +24,17 @@ def GetPatientsInImport(import_dir):
     Returns:
         List of dictionaries where each dict has keys: "MRN" and "Name"    
     '''
-    # loop through each file in the import directory
-    fpaths = ActivityA.get_dcm_filepaths(import_dir)
-    # return a list of dictionaries with patient MRNs and Names
-    pt_dicts = ActivityA.get_patient_mrns(fpaths)
-    
-    if pt_dicts is None:
+    try:
+        # loop through each file in the import directory
+        fpaths = ActivityA.get_dcm_filepaths(import_dir)
+        # return a list of dictionaries with patient MRNs and Names
+        pt_dicts = ActivityA.get_patient_mrns(fpaths)
+        
+        if pt_dicts is None:
+            pt_dicts = []
+    except Exception as e:
+        print(f"Error obtaining patients in import directory: {e}")
         pt_dicts = []
-
     return pt_dicts
 
 class ImportPatientDataThread(QThread):

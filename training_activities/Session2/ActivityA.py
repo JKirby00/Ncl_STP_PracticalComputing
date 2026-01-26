@@ -85,6 +85,8 @@ def get_patient_mrns(file_paths): #Diff 3
     mrns_found = []
     pt_dicts = []
 
+    # Remove this following line when completing this task
+    pt_dicts.append({"MRN":"Not Implemented", "Name":"Complete Task A3 and A5"})
 
     return pt_dicts
 
