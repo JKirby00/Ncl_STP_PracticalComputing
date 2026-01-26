@@ -18,7 +18,7 @@ def EstimateExternalVolume(px_arrs, slice_thickness,
         instance_numbers (list) = The list of image numbers. This effectively
             tells you the order of the images.
 
-    returns: The calculated volume
+    returns: The calculated volume in cubic cms
     '''
     
     return "Activity not completed"
