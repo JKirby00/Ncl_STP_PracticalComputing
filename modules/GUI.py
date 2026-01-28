@@ -292,8 +292,10 @@ class MainGui(QMainWindow):
         # Apply current window preset if not default
         if self.current_window_preset not in (None, 'default'):
             try:
+                display_img = ActivityB.window_image(img, self.current_window_preset)
                 # Use preset if available, fallback to img if None
-                display_img = ActivityB.window_image(img, self.current_window_preset) or img
+                display_img = display_img if display_img is not None else img
+
                 title_suffix = f" (window: {self.current_window_preset})"
             except Exception as e:
                 print("Activity B isn't working yet!")
