@@ -18,7 +18,11 @@ from datetime import datetime
 
 import DatabaseHandler
 import ImportDicom
-sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
+examples_path = join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples")
+if examples_path in sys.path:
+    sys.path.remove(examples_path)
+print(sys.path)
 from Session1 import Activity1, Activity2, Activity3, Activity7
 from Session1 import Activity8, Activity9
 from Session2 import ActivityB
