@@ -2,21 +2,24 @@
 
 This activity asks you to implement functions related to DICOM file handling using the pydicom library
 
+Pre-requisites:
+    Copy the pydicom example files to the import directory
+
 1) Write a function that will print Patient Name and Patient ID from a DICOM file. Diff 1.
 2) Write a function that will anonymise a DICOM file and save it to a specified file. Diff 1.
-3) *Write a function that creates a list of file paths from a folder containing DICOM files. Diff 3.
+3) Write a function that creates a list of file paths from a folder containing DICOM files. Diff 2.
 4) Write a function that anonymises a set of DICOM files and saves them to a specified location. Diff 2.
-5) *Write a function that creates a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
+5) Write a function that creates a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
     containing the keys "MRN" and "Name". Diff 3.
 6) Write a function that scrapes demographics and pixel data from DICOM files. Diff 4.
 7) Write a function that searches a folder containing DICOM files and identifies the hierarchy of patient, study, and series. Diff 5.
 
 Hints:
+    pydicom.dcmread() is used to read a DICOM file.
     os.listdir() may be useful for getting a list of files in a folder.
     some_string.endswith(".dcm") may be useful for checking if a file is a DICOM file.
     os.path.join() is useful for creating file paths.
     os.basename() is useful for getting the filename from a file path.
-    pydicom.dcmread() is used to read a DICOM file.
 
 """
 import pydicom
@@ -100,6 +103,8 @@ def get_patient_mrns(file_paths): #Diff 3
     """5) Function to create a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
     containing the keys "MRN" and "Name".
 
+    Once complete, check the MiniPACS import functionality to check this is working.
+    
     Inputs:
         folder_path (str): The folder containing DICOM files
     Outputs:
@@ -149,39 +154,69 @@ def scrape_dicom_data(input_filepaths): # Diff 4
     return scraped_data
 
 
-def search_dicom_hierarchy(filepaths): # Diff 5
+def create_dicom_hierarchy(filepaths): # Diff 5
     """7) Function to search a folder containing DICOM files and identify the hierarchy of patient, study, and series.
     
     Inputs:
         filepaths (list): The list of DICOM file paths to be searched
     Outputs:
-        hierarchy (dict): A nested dictionary representing the hierarchy of patients, studies, and series
+        hierarchy (dict): A nested dictionary representing the hierarchy of patient, study, and series. The structure is as follows:
+            {
+                patient_id: {
+                    "PatientName": ...,
+                    "PatientBirthDate": ...,
+                    "PatientSex": ...,
+                    "Study": {
+                        study_uid: {
+                            "StudyDate": ...,
+                            "Series": {
+                                series_uid: {
+                                    "SeriesDate": ...,
+                                    "PixelSpacing": ...,
+                                    "SliceThickness": ...,
+                                    "ImageData": {
+                                        instance_number: pixel_array,
+                                        ...
+                                    }
+                                },
+                                ...
     """
     hierarchy = {}
     for filepath in filepaths:
         ds = pydicom.dcmread(filepath)
 
         # Extract relevant identifiers
-        patient_id = ds.PatientID                   #patient_id = ds.get("PatientID", "Unknown") # Alternatively we can check for 
-        study_instance_uid = ds.StudyInstanceUID    #study_instance_uid = ds.get("StudyInstanceUID", "Unknown")
-        series_instance_uid = ds.SeriesInstanceUID  #series_instance_uid = ds.get("SeriesInstanceUID", "Unknown")
+        patient_id = ds.PatientID          #patient_id = ds.get("PatientID", "Unknown")
+        study_uid = ds.StudyInstanceUID    #study_instance_uid = ds.get("StudyInstanceUID", "Unknown")
+        series_uid = ds.SeriesInstanceUID  #series_instance_uid = ds.get("SeriesInstanceUID", "Unknown")
 
-        # Create nested dictionary structure based on whether the keys already exist
+        # Create nested dictionary structure based on whether the keys already exist. You can add appropriate data to each level as needed.
         if patient_id not in hierarchy:
-            hierarchy[patient_id] = {}
-        if study_instance_uid not in hierarchy[patient_id]:
-            hierarchy[patient_id][study_instance_uid] = {}
-        if series_instance_uid not in hierarchy[patient_id][study_instance_uid]:
-            hierarchy[patient_id][study_instance_uid][series_instance_uid] = []
-
-        # Append the filepath to the appropriate series
-        hierarchy[patient_id][study_instance_uid][series_instance_uid].append(filepath)
+            hierarchy[patient_id] = {
+                "PatientName": ds.PatientName,
+                "PatientBirthDate": ds.PatientBirthDate,
+                "PatientSex": ds.PatientSex,
+                "Study": {}
+            }
+        if study_uid not in hierarchy[patient_id]:
+            hierarchy[patient_id]["Study"][study_uid] = {
+                "StudyDate": ds.StudyDate,
+                "Series": {}
+            }
+        if series_uid not in hierarchy[patient_id]["Study"][study_uid]:
+            hierarchy[patient_id]["Study"][study_uid]["Series"][series_uid] = {
+                "SeriesDate": ds.SeriesDate,
+                "PixelSpacing": ds.PixelSpacing,
+                "SliceThickness": ds.SliceThickness,
+                "ImageData": {}
+            }       
+        hierarchy[patient_id]["Study"][study_uid]["Series"][series_uid]["ImageData"][ds.InstanceNumber] = ds.pixel_array
     return hierarchy
 
 
 if __name__ == "__main__":
     # Test each function
-    dicom_file = r"./import/example.dcm"    # r"path/to/dicom/file.dcm"
+    dicom_file = r"./import/pydicom_example_1.dcm"    # r"path/to/dicom/file.dcm"
     folder_path = r"./import/"              # r"path/to/dicom/folder"
     output_folder = r"./export/"            # r"path/to/output/folder"
 
@@ -211,7 +246,7 @@ if __name__ == "__main__":
     print(scraped_data)
 
     # Test function 7
-    hierarchy = search_dicom_hierarchy(dicom_filepaths)
+    hierarchy = create_dicom_hierarchy(dicom_filepaths)
     print("Task 7 - DICOM Hierarchy:")
     print(hierarchy)
     
