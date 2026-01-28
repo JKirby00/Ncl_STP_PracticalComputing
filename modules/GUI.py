@@ -210,9 +210,9 @@ class MainGui(QMainWindow):
                 cell_item = QTableWidgetItem(str(series_list[row_id][col_name]))
                 self.seriesTable.setItem(row_id, col_id, cell_item)
 
-        self.VolsThread = CalculateExternalVolumesThread(self.series_list)
-        self.VolsThread.vol_calculated_sig.connect(self.UpdateExternalVol)
-        self.VolsThread.start()
+        #self.VolsThread = CalculateExternalVolumesThread(self.series_list)
+        #self.VolsThread.vol_calculated_sig.connect(self.UpdateExternalVol)
+        #self.VolsThread.start()
 
     def UpdateExternalVol(self, vol_data):
         '''Data has been sent back from the CalculateExternalVolumes
@@ -274,10 +274,10 @@ class MainGui(QMainWindow):
         this data and show it on the GUI'''
         self.image_data = image_data
 
-        Activity3.GetSomeImageStats(image_data)
-
         self.current_instance_num = int(0.5*(max(image_data['instance_ids']) - min(image_data['instance_ids'])))
         self.PlotImage(self.current_instance_num)
+
+        Activity3.GetSomeImageStats(image_data)
 
     def PlotImage(self, instance_number):
         """Plot the image on the GUI for the specified instance number."""
