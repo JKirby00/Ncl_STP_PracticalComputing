@@ -1,21 +1,15 @@
 """Activity - Databases
 
 Pre-requisite:
-    Either install SQLite Viewer from VSCode extensions or view the database is SQLite DBBrowser
+    Either install SQLite Viewer from VSCode extensions or view the database in SQLite DBBrowser
 
 1) Write some simple SQL queries into the empty dictionary 'sql_queries' below to retrieve the required information (diff=1-2)
 2) Complete the query_database function to connect to the database, execute a query and return the results (diff=1)
 3) Write functions to use your SQL queries and query_database function to return the results (diff=1)
-4) Write the functions necessary to add a new patient to the database (diff=3)
+4) Write a function to add a new patient to the database (diff=3)
 5) Write the docstrings for the database query functions you have just created  (diff=1) 
-6) Write tests for the database query functions: (diff=3)
-    - Specified usual behaviour 
-    - Specified edge cases 
-    - Errors 
-7) Review the practical from Session 2 and compile a list of specifications for one or more of the DICOM functions 
-8) Turn the specifications into unit tests 
-9) Review the mini-PACs application and compile a list of product specifications 
-10) Turn the specifications into system tests 
+
+Some helper code for testing has been included in the block at the end of the script.
 
 """
 import sqlite3
