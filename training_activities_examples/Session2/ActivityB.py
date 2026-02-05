@@ -83,7 +83,7 @@ def window_image(img_hu, preset="default"):
     return windowed
 
 if __name__ == "__main__":
-    dicom_path = r"A:\STPComputing\import\Anne Dippet\CT1.2.752.243.1.1.20260108132323816.6100.12002.dcm"
+    dicom_path = r"C:\your_path\import\CT_Anne_Dippet.dcm"
     ds = pydicom.dcmread(dicom_path)
 
     # Plot stored pixel data

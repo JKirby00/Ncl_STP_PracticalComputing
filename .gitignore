@@ -211,7 +211,7 @@ database/Yr2PracticalComputingDb.db
 *.db
 
 # dicom files
-*.dcm
+# *.dcm
 
 # excel files
 *.xlsx
