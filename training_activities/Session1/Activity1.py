@@ -20,6 +20,5 @@ if __name__ == "__main__":
 
     PrintDataToConsole(patient_details = patient_dict)
     
-    #test
 
 
