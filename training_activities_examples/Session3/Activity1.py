@@ -119,7 +119,7 @@ if __name__ == "__main__":
     print("Task2 query:", query_result)
     
     # Update the following to test your SQL queries requiring parameters
-    query_result = query_database(sql_queries["get_patient_by_mrn"], ("123456",))
+    query_result = query_database(sql_queries["get_patient_by_mrn"], ("123456B",))
     print("Task2 query:", query_result)
     
     # Update the following to test your SQL functions

@@ -57,6 +57,7 @@ class TestDatabaseQueries(unittest.TestCase):
         self.assertEqual(last_patient, ("87654321", "Gytha Ogg", "1938-05-21", "Lancre"))
 
     def test_insert_patient_does_not_add_a_patient_to_the_database_if_the_input_is_invalid(self):
+        # this does NOT fail as the db has no constraints
         before_add = get_patients()
         add = insert_patient("", "Sam Vimes", "1951-55-55", "Ankh-Mopork")
         self.assertFalse(add)
