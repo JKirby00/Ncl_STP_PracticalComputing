@@ -1,6 +1,6 @@
 import unittest
-from Activity1 import *
-# from Activity1 import sql_queries
+from ActivityA import *
+# from ActivityA import sql_queries
 
 class TestDatabaseQueries(unittest.TestCase):
 
