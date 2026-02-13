@@ -6,6 +6,9 @@ import sqlite3
 import pathlib
 from os.path import join
 import numpy as np
+import sys
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
+from Session3.ActivityA import sql_query as activitya_sql
 
 class PacsDatabaseClass:
     '''
@@ -63,15 +66,24 @@ class PacsDatabaseClass:
         self.CreateDatabaseConnection()
 
         # complate the query to get all patients
-        cursor = self.Conn.cursor()
-        cursor.execute("SELECT * FROM Patients")
-        patients = cursor.fetchall()
+        try:
+            cursor = self.Conn.cursor()
+            cursor.execute(activitya_sql["get_all_patients"])
+            patients = cursor.fetchall()
 
-        self.CloseDatabaseConnection()
+            self.CloseDatabaseConnection()
 
-        # get the column names
-        col_names = [desc[0] for desc in cursor.description]
-        
+            # get the column names
+            col_names = [desc[0] for desc in cursor.description]
+
+        except:
+            cursor = self.Conn.cursor()
+            cursor.execute("SELECT * FROM Patients")
+            patients = cursor.fetchmany(2)
+            self.CloseDatabaseConnection()
+            patients.append((3, 'Complete', 'Session 3 Activity A1', '01/01/1900', 'For more results'))
+            # get the column names
+            col_names = [desc[0] for desc in cursor.description]
         # convert the result to a list of dictionaries
         pt_dicts = []
         for row in patients:
@@ -193,9 +205,10 @@ class PacsDatabaseClass:
         except:
             self.CreateDatabaseConnection()
             cursor = self.Conn.cursor()
-            sql_string = """INSERT INTO Patients (MRN,
-                Name, DateOfBirth, Address) VALUES (?,?,?,?)
-            """
+            sql_string = activitya_sql["insert_new_patient"]
+            #"""INSERT INTO Patients (MRN,
+            #    Name, DateOfBirth, Address) VALUES (?,?,?,?)
+            #"""
             
             variables = (data[first_study_uid]["MRN"],
                 str(data[first_study_uid]["Name"]),
