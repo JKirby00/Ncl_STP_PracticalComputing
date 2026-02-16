@@ -23,7 +23,7 @@ examples_path = join(pathlib.Path(__file__).parent.parent.absolute(), "training_
 if examples_path in sys.path:
     sys.path.remove(examples_path)
 
-from Session1 import Activity1, Activity2, Activity3, Activity7
+from Session1 import Activity1, Activity2, Activity3, Activity7, Activity11
 from Session1 import Activity8, Activity9
 from Session2 import ActivityB
 
@@ -238,6 +238,8 @@ class MainGui(QMainWindow):
             Activity1.PrintDataToConsole(patient_details = self.pt_data[row])
         except:
             print("Activity 1 not yet completed")
+
+        Activity11.LogAccess(self.pt_data[row]['MRN'])
 
         # update study and series tables
         # initially clearing them
