@@ -4,7 +4,9 @@ data to the console. Remember, call the function
 PrintDataToConsole and get it to have a single argument
 (input) called patient_details'''
 
-
+def PrintDataToConsole(patient_details):
+    for key, value in patient_details.items():
+        print(f"{key}: {value}")
 
 if __name__ == "__main__":
     # This code will be run when you run this file directly
