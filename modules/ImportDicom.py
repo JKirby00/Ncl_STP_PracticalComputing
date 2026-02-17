@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import DatabaseHandler
 from datetime import datetime
 
-sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples"))
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
 from Session2 import ActivityA
 
 def GetPatientsInImport(import_dir):

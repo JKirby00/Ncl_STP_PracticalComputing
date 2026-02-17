@@ -22,8 +22,8 @@ sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_
 examples_path = join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities_examples")
 if examples_path in sys.path:
     sys.path.remove(examples_path)
-print(sys.path)
-from Session1 import Activity1, Activity2, Activity3, Activity7
+
+from Session1 import Activity1, Activity2, Activity3, Activity7, Activity11
 from Session1 import Activity8, Activity9
 from Session2 import ActivityB
 
@@ -77,7 +77,7 @@ class MainGui(QMainWindow):
     def ExportBtnClicked(self):
         '''The export button has been clicked, so send data
         to the Activity 9 function to save to Excel.'''
-        
+
         if self.current_patient_row is None:
             pt_data = None
         else:
@@ -116,13 +116,13 @@ class MainGui(QMainWindow):
     def UpdatePatientTable(self):
         '''Function to update the patient table data by querying
         the database and then updating the table with the results.
-        
+
         Args: Nothing
         Returns Nothing
         '''
         # first get the patient data
         self.pt_data = self.DbClass.GetPatientDetails()
-        
+
         # then remove existing rows in table
         self.patientTable.setRowCount(0)
 
@@ -221,9 +221,9 @@ class MainGui(QMainWindow):
     def UpdateExternalVol(self, vol_data):
         '''Data has been sent back from the CalculateExternalVolumes
         Thread so update the series table with the volume data.
-        
+
         Args:
-            vol_data (dict) = Dict with keys: "table_row" and "content"    
+            vol_data (dict) = Dict with keys: "table_row" and "content"
         '''
         # create a new cell with the content and then add it to the table
         new_cell = QTableWidgetItem(vol_data["content"])
@@ -238,6 +238,8 @@ class MainGui(QMainWindow):
             Activity1.PrintDataToConsole(patient_details = self.pt_data[row])
         except:
             print("Activity 1 not yet completed")
+
+        Activity11.LogAccess(self.pt_data[row]['MRN'])
 
         # update study and series tables
         # initially clearing them
@@ -399,7 +401,7 @@ class BMIDialog(QDialog):
         bmi = Activity7.CalculateBMI(
             height = height_input,
             weight = weight_input)
-        
+
         self.BMIAnswerLabel.setText(str(bmi))
 
 class PatientListDialog(QDialog):
@@ -429,7 +431,7 @@ class PatientListDialog(QDialog):
         selected_pt = self.ptListWidget.currentItem()
         if selected_pt is None:
             return
-        
+
         progress = ProgressDialog()
 
         self.import_thread = ImportDicom.ImportPatientDataThread(
@@ -450,7 +452,7 @@ class ProgressDialog(QDialog):
 
     def UpdateValue(self, val):
         '''Update the value on the progress bar
-        
+
         Args:
             val (int) = The new progress value
         returns nothing
@@ -460,10 +462,10 @@ class ProgressDialog(QDialog):
     def UpdateLabel(self, new_string):
         '''Update the string shown on the label
         on the progress dialog.
-        
+
         Args:
             new_string (str) = The string to show on the label
-        Returns nothing    
+        Returns nothing
         '''
         self.progressLabel.setText(new_string)
 
@@ -471,7 +473,7 @@ class FindPatientsInImportThread(QThread):
     '''Class to define the thread that identifies the patient
     data in the import directory. This is done as a thread to
     avoid locking the GUI.
-    
+
     Args:
         import_dir (str) = The path of the import directory
     '''
@@ -490,7 +492,7 @@ class FindPatientsInImportThread(QThread):
 class GetStudyInfoThread(QThread):
     '''Class to define the thread that finds the study data
     associated with the clicked patient.
-    
+
     Args:
         pt_dbid (int) = the database id of the patient
     '''
@@ -508,7 +510,7 @@ class GetStudyInfoThread(QThread):
 class GetSeriesInfoThread(QThread):
     '''Class the define the thread that fiunds the series
     data associated with the clicked study.
-    
+
     Args:
         study_dbid (int) = The database id of the study
     '''
@@ -526,7 +528,7 @@ class GetSeriesInfoThread(QThread):
 class GetImageDataThread(QThread):
     '''Class the define the thread that finds the image
     data associated with the clicked series.
-    
+
     Args:
         series_dbid (int) = The database id of the series
     '''
@@ -556,7 +558,7 @@ class CalculateExternalVolumesThread(QThread):
         for i in range(len(self.series_list)):
             img_data = self.PacsDatabaseClass.GetImageData(
                 series_id = self.series_list[i]["id"])
-            
+
             try:
                 vol = Activity8.EstimateExternalVolume(
                         px_arrs = img_data["images"],
@@ -564,7 +566,7 @@ class CalculateExternalVolumesThread(QThread):
                         row_px_spacing = img_data["row_pixel_spacing"],
                         col_px_spacing = img_data["col_pixel_spacing"],
                         instance_numbers = img_data["instance_ids"])
-                
+
                 self.vol_calculated_sig.emit({
                     "table_row":i,
                     "content":str(vol)}

@@ -30,7 +30,7 @@ if __name__ == "__main__":
           "type":"imaging",
           "title":"CBCT SNR"}
         ]
-    
+
     # the key in the results correspond to the test number
     results = {
         "1":{"result":"PASS"},

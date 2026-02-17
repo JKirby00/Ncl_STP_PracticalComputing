@@ -1,5 +1,5 @@
 import unittest
-from Activity1 import *
+from ActivityA import *
 
 class TestDatabaseQueries(unittest.TestCase):
 

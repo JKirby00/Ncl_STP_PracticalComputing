@@ -2,17 +2,22 @@
 
 This activity asks you to implement functions related to DICOM file handling using the pydicom library
 
+You need to complete tasks 3 and 5 to add DICOM reading functionality to the MiniPACs system.
+
 Pre-requisites:
     Copy the pydicom example files to the import directory
 
-1) Write a function that will print Patient Name and Patient ID from a DICOM file. Diff 1.
-2) Write a function that will anonymise a DICOM file and save it to a specified file. Diff 1.
-3) Write a function that creates a list of file paths from a folder containing DICOM files. Diff 3.
-4) Write a function that anonymises a set of DICOM files and saves them to a specified location. Diff 2.
-5) Write a function that creates a list of patient MRNs from DICOM files in a folder. Each list entry should be dictionary
-    containing the keys "MRN" and "Name". Diff 3.
-6) Write a function that scrapes demographics and pixel data from DICOM files. Diff 4.
-7) Write a function that searches a folder containing DICOM files and identifies the hierarchy of patient, study, and series. Diff 5.
+1) Write a function that reads a DICOM file and prints the Patient Name and Patient ID. Diff 1.
+2) Write a function that anonymises a DICOM file and saves the anonymised version to a specified output path. Diff 1.
+3) Write a function that returns a list of full file paths for all DICOM files within a given folder. Diff 2.
+4) Write a function that anonymises all DICOM files in a given folder and saves the anonymised copies to a specified 
+    output folder. Diff 2.
+5) Write a function that scans a folder of DICOM files and returns a list of dictionaries, each containing a patient's 
+    MRN and Name, using the keys "MRN" and "Name". Diff 3.
+6) Write a function that extracts demographic information and pixel data from a DICOM file and returns them in a 
+    structured format. Diff 4.
+7) Write a function that analyses all DICOM files in a folder and identifies the hierarchy of Patient → Study → Series, 
+    returning a structured representation of this hierarchy. Diff 5.
 
 Hints:
     pydicom.dcmread() is used to read a DICOM file.

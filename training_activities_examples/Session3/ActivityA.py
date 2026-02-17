@@ -1,18 +1,15 @@
 """Activity - Databases
 
-1) Write some simple SQL queries into the empty dictionary 'sql_queries' below to retrieve the required information (diff=1-2)
+Pre-requisite:
+    Either install SQLite Viewer from VSCode extensions or view the database in SQLite DBBrowser
+
+1) Write some simple SQL queries into the empty dictionary 'sql_query' below to retrieve the required information (diff=1-2)
 2) Complete the query_database function to connect to the database, execute a query and return the results (diff=1)
 3) Write functions to use your SQL queries and query_database function to return the results (diff=1)
 4) Write a function to add a new patient to the database (diff=3)
 5) Write the docstrings for the database query functions you have just created  (diff=1) 
-6) Write tests for the database query functions: (diff=3)
-    - Specified usual behaviour 
-    - Specified edge cases 
-    - Errors 
-6) Review the practical from Session 2 and compile a list of specifications for one or more of the DICOM functions 
-7) Turn the specifications into unit tests 
-8) Review the mini-PACs application and compile a list of product specifications 
-9) Turn the specifications into system tests 
+
+Some helper code for testing has been included in the block at the end of the script.
 
 """
 import sqlite3
@@ -20,7 +17,7 @@ import os
 import pathlib
 
 # Add your SQL queries into the empty strings below
-sql_queries = {
+sql_query = {
     "get_all_patients": "SELECT * FROM Patients",
     "get_patient_by_mrn": "SELECT * FROM Patients WHERE MRN = ?",
     "get_all_studies": "SELECT * FROM Studies",
@@ -41,7 +38,7 @@ def get_patients():
     Outputs:
         results: List of all patients
     '''
-    return query_database(sql_queries["get_all_patients"])
+    return query_database(sql_query["get_all_patients"])
 
 
 
@@ -83,7 +80,7 @@ def insert_patient(mrn, name, dob, address):
     Outputs:
         result (bool): True if insertion was successful, False otherwise
     '''
-    result = insert_into_database(sql_queries["insert_new_patient"], (mrn, name, dob, address))
+    result = insert_into_database(sql_query["insert_new_patient"], (mrn, name, dob, address))
     return result
 
 
@@ -115,11 +112,11 @@ def insert_into_database(query, params=()):
 
 if __name__ == "__main__":
     # Update the following to test your SQL queries
-    query_result = query_database(sql_queries["get_all_patients"])
+    query_result = query_database(sql_query["get_all_patients"])
     print("Task2 query:", query_result)
     
     # Update the following to test your SQL queries requiring parameters
-    query_result = query_database(sql_queries["get_patient_by_mrn"], ("123456B",))
+    query_result = query_database(sql_query["get_patient_by_mrn"], ("123456B",))
     print("Task2 query:", query_result)
     
     # Update the following to test your SQL functions

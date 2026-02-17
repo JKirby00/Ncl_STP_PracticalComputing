@@ -1,11 +1,14 @@
 '''This module is designed to deal with the communication
-with the SQlite database which will contain the basic patient 
+with the SQlite database which will contain the basic patient
 data to show in our test pacs system.'''
 
 import sqlite3
 import pathlib
 from os.path import join
 import numpy as np
+import sys
+sys.path.append(join(pathlib.Path(__file__).parent.parent.absolute(), "training_activities"))
+from Session3.ActivityA import sql_query as activitya_sql
 
 class PacsDatabaseClass:
     '''
@@ -54,7 +57,7 @@ class PacsDatabaseClass:
     def GetPatientDetails(self):
         '''Function to retrieve the list of patient data
         from the patients table.
-        
+
         Args: None
         Returns:
             List of dicts where the keys are the column names and each
@@ -63,15 +66,24 @@ class PacsDatabaseClass:
         self.CreateDatabaseConnection()
 
         # complate the query to get all patients
-        cursor = self.Conn.cursor()
-        cursor.execute("SELECT * FROM Patients")
-        patients = cursor.fetchall()
+        try:
+            cursor = self.Conn.cursor()
+            cursor.execute(activitya_sql["get_all_patients"])
+            patients = cursor.fetchall()
 
-        self.CloseDatabaseConnection()
+            self.CloseDatabaseConnection()
 
-        # get the column names
-        col_names = [desc[0] for desc in cursor.description]
-        
+            # get the column names
+            col_names = [desc[0] for desc in cursor.description]
+
+        except:
+            cursor = self.Conn.cursor()
+            cursor.execute("SELECT * FROM Patients")
+            patients = cursor.fetchmany(2)
+            self.CloseDatabaseConnection()
+            patients.append((3, 'Complete', 'Session 3 Activity A1', '01/01/1900', 'For more results'))
+            # get the column names
+            col_names = [desc[0] for desc in cursor.description]
         # convert the result to a list of dictionaries
         pt_dicts = []
         for row in patients:
@@ -79,13 +91,13 @@ class PacsDatabaseClass:
             for i in range(len(col_names)):
                 row_dict[col_names[i]] = row[i]
             pt_dicts.append(row_dict)
-        
+
         return pt_dicts
-    
+
     def GetStudyDetails(self, pt_id):
         '''Function to retrieve the list of study data
         given a patient database id.
-        
+
         Args: None
         Returns:
             List of dicts where the keys are the column names and each
@@ -102,7 +114,7 @@ class PacsDatabaseClass:
 
         # get the column names
         col_names = [desc[0] for desc in cursor.description]
-        
+
         # convert the result to a list of dictionaries
         study_dicts = []
         for row in studies:
@@ -110,13 +122,13 @@ class PacsDatabaseClass:
             for i in range(len(col_names)):
                 row_dict[col_names[i]] = row[i]
             study_dicts.append(row_dict)
-        
+
         return study_dicts
-    
+
     def GetSeriesDetails(self, study_id):
         '''Function to retrieve the list of study data
         given a patient database id.
-        
+
         Args: None
         Returns:
             List of dicts where the keys are the column names and each
@@ -132,7 +144,7 @@ class PacsDatabaseClass:
 
         # get the column names
         col_names = [desc[0] for desc in cursor.description]
-        
+
         # convert the result to a list of dictionaries
         series_dicts = []
         for row in series:
@@ -140,9 +152,9 @@ class PacsDatabaseClass:
             for i in range(len(col_names)):
                 row_dict[col_names[i]] = row[i]
             series_dicts.append(row_dict)
-        
+
         return series_dicts
-    
+
     def GetImageData(self, series_id):
         '''Obtain the image data for the given series id'''
         self.CreateDatabaseConnection()
@@ -161,12 +173,11 @@ class PacsDatabaseClass:
             "row_pixel_spacing":images[0][6],
             "col_pixel_spacing":images[0][7],
             "slice_thickness":images[0][8]}
-        
+
         for image in images:
             image_data["images"][str(image[1])] = np.frombuffer(
                     image[2], dtype=np.int16).reshape(
                         image[4], image[5])
-            
 
         return image_data
 
@@ -193,10 +204,11 @@ class PacsDatabaseClass:
         except:
             self.CreateDatabaseConnection()
             cursor = self.Conn.cursor()
-            sql_string = """INSERT INTO Patients (MRN,
-                Name, DateOfBirth, Address) VALUES (?,?,?,?)
-            """
-            
+            sql_string = activitya_sql["insert_new_patient"]
+            #"""INSERT INTO Patients (MRN,
+            #    Name, DateOfBirth, Address) VALUES (?,?,?,?)
+            #"""
+
             variables = (data[first_study_uid]["MRN"],
                 str(data[first_study_uid]["Name"]),
                 data[first_study_uid]["DOB"],
@@ -238,7 +250,7 @@ class PacsDatabaseClass:
 
                 self.CreateDatabaseConnection()
                 cursor = self.Conn.cursor()
-            
+
                 sql_string = """INSERT INTO Series (StudyId,
                     Description, NumberOfSlices) VALUES (?,?,?)
                 """
@@ -272,7 +284,7 @@ class PacsDatabaseClass:
 
                     self.CreateDatabaseConnection()
                     cursor = self.Conn.cursor()
-                
+
                     sql_string = """INSERT INTO Images (InstanceNumber,
                         PixelData, SeriesDbId, Shape1, Shape2, PixelSpacingRow,
                         PixelSpacingCol, SliceThickness) VALUES (?,?,?,?,?,?,?,?)
