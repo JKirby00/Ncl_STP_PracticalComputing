@@ -1,6 +1,7 @@
 '''File for Session 1 Activity 9. In this task,
 you are asked to write data to an excel spreadsheet.'''
 
+from openpyxl import Workbook
 
 def WriteDataToExcel(pt_data, study_data, series_data):
     '''
@@ -19,5 +20,6 @@ def WriteDataToExcel(pt_data, study_data, series_data):
 
     returns nothing
     '''
-    
+
+
     return
