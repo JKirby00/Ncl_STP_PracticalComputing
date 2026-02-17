@@ -4,6 +4,25 @@ smaller units that work together to give the same functionality.'''
 
 import numpy as np
 
+def GetImageLimits(instance_ids):
+    image_max = max(instance_ids)
+    image_min = min(instance_ids)
+
+    return image_max,image_min
+
+def GetIntervalAsInt(instance_max, instance_min, interval):
+    IntervalPlace = int(interval * (instance_max - instance_min) + instance_min)
+    return IntervalPlace
+
+def GetStatistic(image, operation):
+    if operation = "mean":
+
+    elif operation = "median":
+
+    elif operation = "max":
+
+    elif operation = "min":
+
 def GetSomeImageStats(image_data):
     '''
     This is function that find some slightly random image
@@ -23,12 +42,11 @@ def GetSomeImageStats(image_data):
 
     # find the instance numbers that are 25%, 50% and 75% of the way through
     # the image set
-    max_instance = max(image_data["instance_ids"])
-    min_instance = min(image_data["instance_ids"])
+    max_instance,min_instance = GetImageLimits(image_data["instance_ids"])# # Gets the max and min of the instance ids
 
-    inst_25 = int(0.25*(max_instance - min_instance) + min_instance)
-    inst_50 = int(0.5*(max_instance - min_instance) + min_instance)
-    inst_75 = int(0.75*(max_instance - min_instance) + min_instance)
+    inst_25 = GetIntervalAsInt(max_instance,min_instance,0.25) # int(0.25*(max_instance - min_instance) + min_instance)
+    inst_50 = GetIntervalAsInt(max_instance,min_instance,0.50) #int(0.5*(max_instance - min_instance) + min_instance)
+    inst_75 = GetIntervalAsInt(max_instance,min_instance,0.75) #int(0.75*(max_instance - min_instance) + min_instance)
 
     # for each of these slices find some stats and print them to the screen
     # find the min pixel values
