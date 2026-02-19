@@ -10,31 +10,28 @@ In this activity you will write functions to:
 import numpy as np
 import matplotlib.pyplot as plt
 import pydicom
+if __name__ == "__main__":
+    dicom_path = r"C:\Users\c4073711\Desktop\Ncl_STP_PracticalComputing\import\CT_Anne_Dippet.dcm"
+    ds = pydicom.dcmread(dicom_path)
 
 def plot_image(img, title="Image", cmap="gray"):
-    """
-    Display a 2D image array using Matplotlib with optional title and colormap.
+    plt.figure(figsize=(6, 6))
+    plt.imshow(img, cmap=cmap)
+    plt.axis("on")
+    plt.title(title)
+    plt.show()
+plot_image(ds.pixel_array)
 
-    Inputs:
-        img (np.ndarray): 2D array representing the image to display.
-        title (str, optional): Figure title. Defaults to "Image".
-        cmap (str, optional): Matplotlib colormap name (e.g., "gray"). Defaults to "gray".
-    Outputs:
-        None: Shows the plot in a window (side effect).
-    """
-    pass
-
-def rescale_to_hu(ds):
-    """
-    Convert DICOM pixel data to Hounsfield Units (HU) using slope and intercept.
-
-    Inputs:
-        ds (pydicom.dataset.FileDataset): DICOM dataset containing pixel data and
-            optional RescaleSlope and RescaleIntercept tags.
-    Outputs:
-        np.ndarray: Image array in Hounsfield Units (same shape as ds.pixel_array).
-    """
-    pass
+def rescale_to_hu(image):
+    arr = image.pixel_array
+    slope = getattr(ds, "RescaleSlope", 1.0)
+    intercept = getattr(ds, "RescaleIntercept", 0.0)
+    hu = arr * slope + intercept
+    plot_image(hu)
+    return hu
+rescale_to_hu(ds)
+    
+    
 
 def window_image(img_hu, preset=None):
     """
@@ -52,5 +49,5 @@ def window_image(img_hu, preset=None):
     pass
 
 if __name__ == "__main__":
-    dicom_path = r"C:\your_path\import\CT_Anne_Dippet.dcm"
+    dicom_path = r"C:\Users\c4073711\Desktop\Ncl_STP_PracticalComputing\import\CT_Anne_Dippet.dcm"
     ds = pydicom.dcmread(dicom_path)

@@ -27,44 +27,34 @@ Hints:
     os.basename() is useful for getting the filename from a file path.
 
 """
-import pydicom
+import pydicom as dcm
 import os
 
 
 def print_patient_info(dicom_filepath): #Diff 1
-    """1) Function to print Patient Name and Patient ID from a DICOM file.
-
-    Inputs:
-        dicom_filepath (str): The file path to the DICOM file
-    Outputs:
-        None: The function prints the Patient Name and Patient ID
-    """
-    pass
+    ds = dcm.dcmread("import/pydicom_example_1.dcm")
+    print( "Patient name is:", ds.PatientName, ", Patient ID is:", ds.PatientID)
 
 
 def anonymise_dicom(dcm_file, output_file): # Diff 1
-    """2) Function to anonymise a DICOM file and save it as a new DICOM file.
-    
-    Inputs:
-        dcm_file (list): A file path to a DICOM file to be anonymised
-        output_file (str): The filename and path where the anonymised DICOM file will be saved
-
-    Outputs:
-        None: The anonymised DICOM files are saved to the specified output folder
-    """
-    pass
+    ds = dcm.dcmread("import/CT_Anne_Dippet.dcm")
+    ds.PatientName = "*********"
+    ds.PatientBirthDate = "**********"
+    ds.PatientID = "**********"
+    ds.PatientSex = "**********"
+    #print(ds)
+    dcm.dcmwrite("annnonymise Anne", ds)
+    print(ds)
+    #output_file (str): The filename and path where the anonymised DICOM file will be saved
 
 
 def get_dcm_filepaths(folder_path): #Diff 3
-    """3) Function to create a list of file paths from a folder containing DICOM files.
-
-    Inputs:
-        folder_path (str): The folder to check for DICOM files
-    Outputs:
-        list_filepaths (list): A list of file paths to the DICOM files
-    """
     list_filepaths = []
-
+    filenames = os.listdir(folder_path)
+    for file in filenames:
+        if file.endswith(".dcm"):
+            filepath = os.path.join(folder_path, file)
+            list_filepaths.append(filepath)
     return list_filepaths
 
 

@@ -18,42 +18,53 @@ import pathlib
 
 # Add your SQL queries into the empty strings below
 sql_query = {
-    "get_all_patients": "Replace this with your SQL query", # this query adds functionality to MiniPACs
-    "get_patient_by_mrn": "",
-    "get_all_studies": "",
-    "get_study_by_id": "",
-    "get_all_series": "",
-    "get_series_by_study_id": "",
-    "get_images_by_id": "",
-    "insert_new_patient": "" # this query adds functionality to MiniPACs
+    "get_all_patients": "SELECT Name, MRN, DateOfBirth, Address FROM patients", # this query adds functionality to MiniPACs
+    "get_patient_by_mrn": "SELECT MRN FROM patients WHERE mrn = ?",
+    "get_all_studies": "SELECT * FROM studies",
+    "get_study_by_id": "SELECT ID FROM studies WHERE id = ?",
+    "get_all_series": "SELECT * FROM series",
+    "get_series_by_study_id": "SELECT * FROM series WHERE study_id = ?",
+    "get_images_by_id": "SELECT * FROM images WHERE series_id = ?",
+    "insert_new_patient": "INSERT INTO patients (MRN, NAME, DateOfBirth, Address) VALUES (?, ?, ?, ?)" # this query adds functionality to MiniPACs
 }
-
-
 def get_patients():
-    pass
-
+    return query_database(sql_query["get_all_patients"])
 
 def query_database(query, params=()):
-    '''
-    Inputs:
-        query (str): The SQL query to execute
-        params (tuple): The parameters to use in the SQL query
-    Outputs: 
-    '''
-    conn = None
-    cursor = None
-    db_path = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "database", "Yr2PracticalComputingDb.db")
+    db_path = r"C:\Users\c4073711\Desktop\Ncl_STP_PracticalComputing\database\Yr2PracticalComputingDb.db"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    results = cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return results
 
 
-def insert_patient(mrn, name, date_of_birth, address):
-    pass
+def insert_patient(MRN, NAME, DateOfBirth, Address):
+    insert_into_database(sql_query["insert_new_patient"], (MRN, NAME, DateOfBirth, Address))
+    db_path = r"C:\Users\c4073711\Desktop\Ncl_STP_PracticalComputing\database\Yr2PracticalComputingDb.db"
+    query = "INSERT INTO patients (MRN, NAME, DateOfBirth, Address) VALUES (?, ?, ?, ?)"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor() 
+    cursor.execute(query, (MRN, NAME, DateOfBirth, Address))
+    results = cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return results
+
+
 
 
 def insert_into_database(query, params=()):
-    conn = None
-    cursor = None
-    db_path = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "database", "Yr2PracticalComputingDb.db")
-    pass
+    db_path = r"C:\Users\c4073711\Desktop\Ncl_STP_PracticalComputing\database\Yr2PracticalComputingDb.db"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor() 
+    cursor.execute(query, params)
+    results = cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return results
 
 
 if __name__ == "__main__":
@@ -70,6 +81,6 @@ if __name__ == "__main__":
 
     # Update the following for inserting a new patient
     print("Task4 Insert:")
-    insert_result = insert_patient("654321", "John Doe", "01/01/1990", "404 Testing St")
+    insert_result = insert_patient("654321", "John Doeeeeeeee", "01/01/1990", "404 Testing St")
     print("Insert Patient Result:", insert_result)
     print("Updated Patients List:", get_patients())

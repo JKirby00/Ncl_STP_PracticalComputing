@@ -5,11 +5,12 @@ PrintDataToConsole and get it to have a single argument
 (input) called patient_details'''
 
 
+def PrintDataToConsole (patient_details):
+    print(patient_dict)
 
 if __name__ == "__main__":
     # This code will be run when you run this file directly
     # This can be very helpful for testing functions
-
     patient_dict = {
         "id":1,
         "MRN":"123456A",
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     }
 
     PrintDataToConsole(patient_details = patient_dict)
+
     
 
 
