@@ -27,9 +27,8 @@ Hints:
     os.basename() is useful for getting the filename from a file path.
 
 """
-import pydicom
+import pydicom as dcm
 import os
-
 
 def print_patient_info(dicom_filepath): #Diff 1
     """1) Function to print Patient Name and Patient ID from a DICOM file.
@@ -39,7 +38,10 @@ def print_patient_info(dicom_filepath): #Diff 1
     Outputs:
         None: The function prints the Patient Name and Patient ID
     """
-    pass
+    ds = dcm.dcmread(dicom_filepath)
+
+    print(ds.PatientName)
+    print(ds.PatientID)
 
 
 def anonymise_dicom(dcm_file, output_file): # Diff 1
@@ -52,7 +54,14 @@ def anonymise_dicom(dcm_file, output_file): # Diff 1
     Outputs:
         None: The anonymised DICOM files are saved to the specified output folder
     """
-    pass
+    ds = dcm.dcmread(dcm_file)
+    ds.PatientName = ""
+    ds.PatientID = ""
+    ds.PatientBirthDate = ""
+    ds.PatientSex = ""
+
+    dcm.dcmwrite(output_file, ds)
+
 
 
 def get_dcm_filepaths(folder_path): #Diff 3
@@ -64,6 +73,13 @@ def get_dcm_filepaths(folder_path): #Diff 3
         list_filepaths (list): A list of file paths to the DICOM files
     """
     list_filepaths = []
+
+    all_files = os.listdir(folder_path)
+
+    for file in all_files:
+        full_path = os.path.join(folder_path, file)
+        if full_path.lower().endswith(".dcm"):
+            list_filepaths.append(full_path)
 
     return list_filepaths
 
@@ -78,7 +94,11 @@ def anonymise_dicom_folder(input_filepaths, output_folder): # Diff 2
     Outputs:
         None: The anonymised DICOM files are saved to the specified output folder
     """
-    pass
+
+    # given input filepaths as a list, anonymise all the files and output them to an anonymised folder
+
+    for file in input_filepaths:
+        anonymise_dicom(file, f"{output_folder}/anonymised_{os.path.basename(file)}.dcm")
 
 
 def get_patient_mrns(file_paths): #Diff 3
@@ -95,8 +115,15 @@ def get_patient_mrns(file_paths): #Diff 3
     mrns_found = []
     pt_dicts = []
 
-    # Remove this following line when completing this task
-    pt_dicts.append({"MRN":"Not Implemented", "Name":"Complete Task A3 and A5"})
+    for file in file_paths:
+        ds = dcm.dcmread(file)
+        patient_name = ds.PatientName
+        patient_id = ds.PatientID
+
+        patient_dictionary = {"Name": patient_name, "MRN": patient_id}
+
+        if patient_dictionary not in pt_dicts:
+            pt_dicts.append(patient_dictionary)
 
     return pt_dicts
 
@@ -110,6 +137,13 @@ def scrape_dicom_data(input_filepaths): # Diff 4
         scraped_data (list):  A list of dictionaries containing demographics and pixel data
     """
     scraped_data = []
+
+    for file in input_filepaths:
+        ds = dcm.dcmread(file)
+
+      #  patient_dictionary = 
+
+    scraped_data.append(patient_dictionary)
 
     return scraped_data
 
