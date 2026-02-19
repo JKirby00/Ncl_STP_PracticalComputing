@@ -9,7 +9,7 @@ In this activity you will write functions to:
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pydicom
+import pydicom as dcm
 
 def plot_image(img, title="Image", cmap="gray"):
     """
@@ -22,7 +22,11 @@ def plot_image(img, title="Image", cmap="gray"):
     Outputs:
         None: Shows the plot in a window (side effect).
     """
-    pass
+
+    fig, ax = plt.subplots()
+    ax.imshow(image_data, cmap = cmap)
+    ax.set_title(title)
+    plt.show()
 
 def rescale_to_hu(ds):
     """
@@ -34,9 +38,16 @@ def rescale_to_hu(ds):
     Outputs:
         np.ndarray: Image array in Hounsfield Units (same shape as ds.pixel_array).
     """
-    pass
 
-def window_image(img_hu, preset=None):
+    ct_array = ds.pixel_array
+    slope = getattr(ds, "RescaleSlope", 1.0)
+    intercept = getattr(ds, "RescaleIntercept", 0.0)
+    hu_array = ct_array * slope + intercept
+    
+    return hu_array
+
+
+def window_image(img_hu, preset="default"):
     """
     Apply CT windowing based on preset (center, width) and normalize to [0, 1].
 
@@ -49,8 +60,35 @@ def window_image(img_hu, preset=None):
         np.ndarray: Windowed image array in [0, 1] for display, or original HU array
         if no windowing is applied.
     """
-    pass
+
+     # Common CT window presets (center, width)
+    window_presets = {
+        "lung": (-600, 1500),
+        "soft tissue": (40, 400),
+        "bone": (300, 1500),
+        "default": None,
+    }
+
+    if preset == "default":
+        return img_hu
+    
+    center, width = window_presets[preset]
+    lower = center - (width / 2.0)
+    upper = center + (width / 2.0)
+
+    windowed = np.clip(img_hu, lower, upper)
+    return windowed
+
 
 if __name__ == "__main__":
-    dicom_path = r"C:\your_path\import\CT_Anne_Dippet.dcm"
-    ds = pydicom.dcmread(dicom_path)
+    dicom_path = r"C:\Users\b1021924\Desktop\scientificComputingSession1\Ncl_STP_PracticalComputing\import\CT_Anne_Dippet.dcm"
+    ds = dcm.dcmread(dicom_path)
+    image_data = ds.pixel_array
+
+    plot_image(image_data)
+    
+    img_hu = rescale_to_hu(ds)
+    plot_image(img_hu, "Rescaled")
+
+    img_window = window_image(ds, "bone")
+    plot_image(img_window, "Windowed")
